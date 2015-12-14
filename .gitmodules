@@ -1,3 +1,18 @@
 [submodule "mupen64plus-core"]
 	path = mupen64plus-core
 	url = https://github.com/johnoneil/mupen64plus-core.git
+[submodule "mupen64plus-ui-console"]
+	path = mupen64plus-ui-console
+	url = https://github.com/johnoneil/mupen64plus-ui-console.git
+[submodule "mupen64plus-video-glide64mk2"]
+	path = mupen64plus-video-glide64mk2
+	url = https://github.com/johnoneil/mupen64plus-video-glide64mk2.git
+[submodule "mupen64plus-rsp-hle"]
+	path = mupen64plus-rsp-hle
+	url = https://github.com/johnoneil/mupen64plus-rsp-hle.git
+[submodule "mupen64plus-input-sdl"]
+	path = mupen64plus-input-sdl
+	url = https://github.com/johnoneil/mupen64plus-input-sdl.git
+[submodule "mupen64plus-audio-sdl"]
+	path = mupen64plus-audio-sdl
+	url = https://github.com/johnoneil/mupen64plus-audio-sdl.git
