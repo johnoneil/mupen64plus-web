@@ -14,4 +14,8 @@ Debug build config is also available (i.e. ```make config=debug ...```
 
 # Running
 Buiilding as above will use the demo game rom in the ```roms``` directory to generate javascript and html for a playable game in the ```games`` directory.
-Serve this ```games`` directory via a web server, and open in a webgl enabled browser to play.
+Serve this directory via a web server, and open in a webgl enabled browser to play.
+
+# Results
+Still needs work as framerate is low, leading to sound sync issues.
+Needs optimization and probably moving to static linking of the plugins at the very least.
