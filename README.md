@@ -1,6 +1,8 @@
 # mupen64plus-web
 Emscripten based web port of Mupen64plus N64 Emulator
 
+![demo image of mupen64plus in browser](https://raw.githubusercontent.com/johnoneil/mupen64plus-web/master/img/Screenshot%20from%202015-12-19%2016%3A02%3A03.png)
+
 # Building
 If you have the Emscripten SDK installed (https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html) you should be able to build via:
 * ```make config=release```
