@@ -1,6 +1,6 @@
 
 ROMS_DIR ?= roms
-INPUT_ROM ?= SuperMario64.v64
+INPUT_ROM ?= m64p_test_rom.v64
 GAMES_DIR ?= games
 OUTPUT_DIR ?= $(abspath $(GAMES_DIR)/$(INPUT_ROM))
 
