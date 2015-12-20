@@ -38,6 +38,10 @@ PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
 	$(PLUGINS_DIR)/$(INPUT_LIB) \
 	$(PLUGINS_DIR)/$(RSP_LIB)
 
+INPUT_FILES = \
+	$(BIN_DIR)/InputAutoCfg.ini \
+	$(BIN_DIR)/Glide64mk2.ini
+
 
 OPT_LEVEL = -O0
 DEBUG_LEVEL = -g2
@@ -104,10 +108,15 @@ $(OUTPUT_DIR) :
 	#Creating output directory
 	mkdir -p $(OUTPUT_DIR)
 
+# input files helpers
+$(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
+	cp $< $@
 
+$(BIN_DIR)/Glide64mk2.ini : mupen64plus-video-glide64mk2/data/Glide64mk2.ini
+	cp $< $@
 
-$(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_DIR)
-	# building core lib
+$(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_DIR) $(INPUT_FILES)
+	# building UI (program entry point)
 	cd $(BIN_DIR) && \
 	rm -fr _obj && \
 	EMCC_FORCE_STDLIBS=1 emmake make \
