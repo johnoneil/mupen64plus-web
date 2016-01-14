@@ -139,7 +139,7 @@ $(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_D
 		--preload-file Glide64mk2.ini \
 		--preload-file InputAutoCfg.ini \
 		-s TOTAL_MEMORY=$(MEMORY) \
-		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 \
+		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 \
 		-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM)" \
 		all
 	(cp $(BIN_DIR)/customIndex.html  $(BIN_DIR)/index.html )
@@ -159,7 +159,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -DEMSCRIPTEN=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1" \
 		all
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
@@ -180,7 +180,7 @@ $(AUDIO_DIR)/$(AUDIO_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
 $(VIDEO_DIR)/$(VIDEO_LIB) :
@@ -201,7 +201,7 @@ $(VIDEO_DIR)/$(VIDEO_LIB) :
 		LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DUSE_FRAMESKIPPER=1\
 		-I../../../boost_1_59_0 \
-		-DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		-DEMSCRIPTEN=1 -s FULL_ES2=1 -DNO_FILTER_THREAD=1" \
 		all
 
 $(INPUT_DIR)/$(INPUT_LIB) :
@@ -219,7 +219,7 @@ $(INPUT_DIR)/$(INPUT_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
 $(RSP_DIR)/$(RSP_LIB) :
@@ -237,7 +237,7 @@ $(RSP_DIR)/$(RSP_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
 		all
 
 
@@ -261,7 +261,7 @@ clean:
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms --preload-file Glide64mk2.ini --preload-file InputAutoCfg.ini -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -DEMSCRIPTEN=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms --preload-file Glide64mk2.ini --preload-file InputAutoCfg.ini -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s FULL_ES2=1 -s USE_LIBPNG=1 -DEMSCRIPTEN=1" \
 		clean
 	rm -f -r $(BIN_DIR)/_obj
 	rm -f $(BIN_DIR)/$(TARGET_LIB)
@@ -282,7 +282,7 @@ clean:
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		clean
 	cd $(VIDEO_DIR) && \
 	emmake make \
@@ -299,7 +299,7 @@ clean:
 		GLU_CFLAGS="" \
 		V=1 \
 		LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -s FULL_ES2=1 -DUSE_FRAMESKIPPER=1" \
 		clean
 	cd $(INPUT_DIR) && \
 	emmake make \
@@ -315,7 +315,7 @@ clean:
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -s FULL_ES2=1 -DNO_FILTER_THREAD=1" \
 		clean
 	cd $(RSP_DIR)&& \
 	emmake make \
@@ -331,5 +331,5 @@ clean:
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -s FULL_ES2=1 -DVIDEO_HLE_ALLOWED=1" \
 		clean
