@@ -59,7 +59,7 @@ else ifeq ($(config), release)
 
 OPT_LEVEL = -Oz
 #OPT_LEVEL = -Oz -s OUTLINING_LIMIT=10000
-DEBUG_LEVEL =
+DEBUG_LEVEL = -g2
 
 else
 
@@ -159,7 +159,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DONSCREEN_FPS=1" \
 		all
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
@@ -247,6 +247,7 @@ $(RSP_DIR)/$(RSP_LIB) :
 clean:
 	rm -f $(PLUGINS_DIR)/*
 	rm -f $(OUTPUT_ROMS_DIR)/*
+	rm $(CORE_DIR)/$(CORE_LIB)
 	cd $(BIN_DIR) && \
 	EMCC_FORCE_STDLIBS=1 emmake make \
 		UNAME=Linux \
