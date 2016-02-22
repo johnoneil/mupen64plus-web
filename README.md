@@ -16,6 +16,11 @@ Debug build config is also available (i.e. ```make config=debug ...```
 Buiilding as above will use the demo game rom in the ```roms``` directory to generate javascript and html for a playable game in the ```games`` directory.
 Serve this directory via a web server, and open in a webgl enabled browser to play.
 
-# Results
-Still needs work as framerate is low, leading to sound sync issues.
-Needs optimization and probably moving to static linking of the plugins at the very least.
+# Status
+* Recently made some changes which turned on the cached interpreter, greatly improving framerate. It's possible the dynamic recompiler may improve it further, but the demo rom now runs at solid 60 FPS in the browser. Most games seem to do a solid 30 FPS, which may be fine.
+* Sound is still not optimal. No sound of Firefox, and Chrome sound has both buffer underruns (at low framerates) and overruns (at high frame rates). Still for some games like SuperMario64 and Ocarina of time the sound is fairly good.
+* There are z-fighting issues, and constant flickering of most decal like textures.
+* No file saving yet.
+* Some issues with the port of boost cause some file handling issues. Most notably rewinding a file pointer is currently broken.
+
+Still, in the light of those issues listed above I'm very pleased at how well many games play.
