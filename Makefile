@@ -246,6 +246,7 @@ $(RSP_DIR)/$(RSP_LIB) :
 
 
 clean:
+	rm -f $(CORE_DIR)/$(CORE_LIB)
 	rm -f $(PLUGINS_DIR)/*
 	rm -f $(OUTPUT_ROMS_DIR)/*
 	cd $(BIN_DIR) && \
