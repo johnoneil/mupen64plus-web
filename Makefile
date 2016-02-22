@@ -59,7 +59,7 @@ else ifeq ($(config), release)
 
 OPT_LEVEL = -Oz
 #OPT_LEVEL = -Oz -s OUTLINING_LIMIT=10000
-DEBUG_LEVEL =
+DEBUG_LEVEL = -g2
 
 else
 
@@ -148,6 +148,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 	cd $(CORE_DIR) && \
 	emmake make \
 		UNAME=Linux \
+		EMSCRIPTEN=1 \
 		TARGET="libmupen64plus.so.2.js" \
 		SONAME="" \
 		USE_GLES=1 NO_ASM=1 \
@@ -159,7 +160,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -DEMSCRIPTEN=1" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -DEMSCRIPTEN=1 -DONSCREEN_FPS=1" \
 		all
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
