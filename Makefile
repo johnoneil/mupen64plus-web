@@ -31,6 +31,8 @@ PLUGINS_DIR = $(BIN_DIR)/plugins
 OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
 TARGET_LIB = $(TARGET).js
 
+BOOST_LIB_DIR = boost_1_59_0/stage/lib
+
 
 PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
 	$(PLUGINS_DIR)/$(AUDIO_LIB) \
@@ -109,6 +111,11 @@ $(OUTPUT_DIR) :
 	#Creating output directory
 	mkdir -p $(OUTPUT_DIR)
 
+$(BOOST_LIB_DIR)/libboost_filesystem.a:
+	pushd boost_1_59_0
+	./b2 --test-config=user-config.jam toolset=emscripten link=static
+	popd
+
 # input files helpers
 $(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
 	cp $< $@
@@ -137,8 +144,6 @@ $(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_D
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) \
 		-s MAIN_MODULE=1 --preload-file plugins \
 		--preload-file data  --preload-file roms \
-		--preload-file Glide64mk2.ini \
-		--preload-file InputAutoCfg.ini \
 		-s TOTAL_MEMORY=$(MEMORY) \
 		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 \
 		-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM)" \
