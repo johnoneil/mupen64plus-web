@@ -16,3 +16,6 @@
 [submodule "mupen64plus-audio-sdl"]
 	path = mupen64plus-audio-sdl
 	url = https://github.com/johnoneil/mupen64plus-audio-sdl.git
+[submodule "mupen64plus-video-rice"]
+	path = mupen64plus-video-rice
+	url = https://github.com/johnoneil/mupen64plus-video-rice.git
