@@ -17,6 +17,9 @@ VIDEO ?= mupen64plus-video-glide64mk2
 VIDEO_DIR = $(VIDEO)/projects/unix
 VIDEO_LIB = $(VIDEO).js
 
+RICE_VIDEO_LIB = mupen64plus-video-rice.js
+RICE_VIDEO_DIR = mupen64plus-video-rice/projects/unix/
+
 INPUT ?= mupen64plus-input-sdl
 INPUT_DIR = $(INPUT)/projects/unix
 INPUT_LIB = $(INPUT).js
@@ -38,7 +41,8 @@ PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
 	$(PLUGINS_DIR)/$(AUDIO_LIB) \
 	$(PLUGINS_DIR)/$(VIDEO_LIB) \
 	$(PLUGINS_DIR)/$(INPUT_LIB) \
-	$(PLUGINS_DIR)/$(RSP_LIB)
+	$(PLUGINS_DIR)/$(RSP_LIB) \
+	$(PLUGINS_DIR)/$(RICE_VIDEO_LIB)
 
 INPUT_FILES = \
 	$(BIN_DIR)/InputAutoCfg.ini \
@@ -60,9 +64,10 @@ DEBUG_LEVEL = -g2 -s ASSERTIONS=1
 
 else ifeq ($(config), release)
 
-OPT_LEVEL = -Oz
+#OPT_LEVEL = -Oz
 #OPT_LEVEL = -Oz -s OUTLINING_LIMIT=10000
-DEBUG_LEVEL = -g2
+#DEBUG_LEVEL = -g2
+OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
 else
 
@@ -93,6 +98,10 @@ $(PLUGINS_DIR)/$(AUDIO_LIB) : $(AUDIO_DIR)/$(AUDIO_LIB)
 $(PLUGINS_DIR)/$(VIDEO_LIB) : $(VIDEO_DIR)/$(VIDEO_LIB)
 	mkdir -p $(PLUGINS_DIR)
 	cp "$<" "$@"
+
+$(PLUGINS_DIR)/$(RICE_VIDEO_LIB) : $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
+		mkdir -p $(PLUGINS_DIR)
+		cp -f "$<" "$@"
 
 $(PLUGINS_DIR)/$(INPUT_LIB) : $(INPUT_DIR)/$(INPUT_LIB)
 	mkdir -p $(PLUGINS_DIR)
@@ -145,7 +154,7 @@ $(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_D
 		-s MAIN_MODULE=1 --preload-file plugins \
 		--preload-file data  --preload-file roms \
 		-s TOTAL_MEMORY=$(MEMORY) \
-		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 \
+		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1\
 		-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM)" \
 		all
 	(cp $(BIN_DIR)/customIndex.html  $(BIN_DIR)/index.html )
@@ -210,6 +219,26 @@ $(VIDEO_DIR)/$(VIDEO_LIB) :
 		-I../../../boost_1_59_0 \
 		-DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
+
+$(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB) :
+	cd $(RICE_VIDEO_DIR) && \
+	emmake make \
+		  UNAME=Linux \
+		  USE_FRAMESKIPPER=1 \
+		  EMSCRIPTEN=1 \
+		  SO_EXTENSION="js" \
+		  USE_GLES=1 NO_ASM=1 \
+		  ZLIB_CFLAGS="-s USE_ZLIB=1" \
+		  PKG_CONFIG="" \
+		  LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
+		  SDL_CFLAGS="-s USE_SDL=2" \
+		  FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
+		  GL_CFLAGS="" \
+		  GLU_CFLAGS="" \
+		  V=1 \
+		  LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
+		  OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
+			all
 
 $(INPUT_DIR)/$(INPUT_LIB) :
 	cd $(INPUT_DIR) && \
@@ -341,3 +370,21 @@ clean:
 		V=1 \
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
 		clean
+		cd $(RICE_VIDEO_DIR) && \
+		emmake make \
+				UNAME=Linux \
+				USE_FRAMESKIPPER=1 \
+				EMSCRIPTEN=1 \
+				SO_EXTENSION="js" \
+				USE_GLES=1 NO_ASM=1 \
+				ZLIB_CFLAGS="-s USE_ZLIB=1" \
+				PKG_CONFIG="" \
+				LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
+				SDL_CFLAGS="-s USE_SDL=2" \
+				FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
+				GL_CFLAGS="" \
+				GLU_CFLAGS="" \
+				V=1 \
+				LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
+				OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
+				clean
