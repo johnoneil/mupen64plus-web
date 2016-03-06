@@ -17,10 +17,9 @@ Buiilding as above will use the demo game rom in the ```roms``` directory to gen
 Serve this directory via a web server, and open in a webgl enabled browser to play.
 
 # Status
+* Build scripts and project setup still primitive. Needs a new "UI" type module specifically for the web (not a port of the command line version).
 * Recently made some changes which turned on the cached interpreter, greatly improving framerate. It's possible the dynamic recompiler may improve it further, but the demo rom now runs at solid 60 FPS in the browser. Most games seem to do a solid 30 FPS, which may be fine.
-* Sound is still not optimal. No sound of Firefox, and Chrome sound has both buffer underruns (at low framerates) and overruns (at high frame rates). Still for some games like SuperMario64 and Ocarina of time the sound is fairly good.
-* There are z-fighting issues, and constant flickering of most decal like textures.
-* No file saving yet.
-* Some issues with the port of boost cause some file handling issues. Most notably rewinding a file pointer is currently broken.
+* Sound is still not optimal. Firefox and Chrome sound has both buffer underruns (at low framerates) and overruns (at high frame rates). Still for some games like SuperMario64 and Ocarina of time the sound is fairly good.
+* Glade Mk2 plugin has z-fighting and performance issues. The newer port of the rice plugin seems to work better, but does not support quite as many games.
 
 Still, in the light of those issues listed above I'm very pleased at how well many games play.
