@@ -1,6 +1,6 @@
 
 ROMS_DIR ?= roms
-INPUT_ROM ?= m64p_test_rom.v64
+INPUT_ROM ?= $(ROMS_DIR)/m64p_test_rom.v64
 GAMES_DIR ?= games
 OUTPUT_DIR ?= $(abspath $(GAMES_DIR)/$(INPUT_ROM))
 
@@ -57,26 +57,98 @@ MEMORY = 402653184
 #MEMORY = 268435456
 #MEMORY = 134217728
 
+
+#make standard native version
+NATIVE_BIN := bin
+NATIVE_PLUGINS := $(NATIVE_BIN)/libmupen64plus.so.2 $(NATIVE_BIN)/mupen64plus-input-sdl.so $(NATIVE_BIN)/mupen64plus-rsp-hle.so $(NATIVE_BIN)/mupen64plus-video-glide64mk2.so $(NATIVE_BIN)/mupen64plus-video-rice.so
+NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
+
+all: $(NATIVE_PLUGINS) $(NATIVE_EXE)
+
+RICE_CFG_DIR := cfg/rice
+GLIDE_CFG_DIR := cfg/glide
+DATA_DIR := mupen64plus-core/data
+
+CFG_DIR := $(RICE_CFG_DIR)
+ifdef glide
+		CFG_DIR := $(GLIDE_CFG_DIR)
+endif
+
+run: all
+	./$(NATIVE_EXE) $(INPUT_ROM) \
+			--corelib $(NATIVE_BIN)/libmupen64plus.so.2 \
+			--configdir $(CFG_DIR) \
+			--datadir $(CFG_DIR) \
+			$(INPUT_ROM)
+
+native-clean:
+	cd mupen64plus-ui-console/projects/unix && $(MAKE) clean
+	cd $(CORE_DIR) && $(MAKE) clean
+	cd $(INPUT_DIR) && $(MAKE) clean
+	cd $(RSP_DIR) && $(MAKE) clean
+	cd $(VIDEO_DIR) && $(MAKE) clean
+	cd $(RICE_VIDEO_DIR) && $(MAKE) clean
+
+rebuild: native-clean all
+
+
+
+$(NATIVE_BIN):
+	mkdir $(NATIVE_BIN)
+
+$(NATIVE_EXE): $(NATIVE_BIN) mupen64plus-ui-console/projects/unix/mupen64plus 
+	cp mupen64plus-ui-console/projects/unix/mupen64plus $@
+
+mupen64plus-ui-console/projects/unix/mupen64plus: 
+	cd mupen64plus-ui-console/projects/unix && $(MAKE) all
+
+$(NATIVE_BIN)/libmupen64plus.so.2: $(NATIVE_BIN) $(CORE_DIR)/libmupen64plus.so.2.0.0
+	cp $(CORE_DIR)/libmupen64plus.so.2.0.0 $@
+
+$(CORE_DIR)/libmupen64plus.so.2.0.0:
+	cd $(CORE_DIR) && $(MAKE) all
+
+$(NATIVE_BIN)/mupen64plus-input-sdl.so: $(NATIVE_BIN) $(INPUT_DIR)/mupen64plus-input-sdl.so
+	cp $(INPUT_DIR)/mupen64plus-input-sdl.so $@
+
+$(INPUT_DIR)/mupen64plus-input-sdl.so:
+	cd $(INPUT_DIR) && $(MAKE) all
+
+$(RSP_DIR)/mupen64plus-rsp-hle.so:
+	cd $(RSP_DIR) && $(MAKE) all
+
+$(NATIVE_BIN)/mupen64plus-rsp-hle.so: $(NATIVE_BIN) $(RSP_DIR)/mupen64plus-rsp-hle.so
+	cp $(RSP_DIR)/mupen64plus-rsp-hle.so $@
+
+$(VIDEO_DIR)/mupen64plus-video-glide64mk2.so:
+	cd $(VIDEO_DIR) && $(MAKE) all
+
+$(NATIVE_BIN)/mupen64plus-video-glide64mk2.so: $(NATIVE_BIN) $(VIDEO_DIR)/mupen64plus-video-glide64mk2.so
+	cp $(VIDEO_DIR)/mupen64plus-video-glide64mk2.so $@
+
+$(RICE_VIDEO_DIR)/mupen64plus-video-rice.so:
+	cd $(RICE_VIDEO_DIR) && $(MAKE) all
+
+$(NATIVE_BIN)/mupen64plus-video-rice.so: $(NATIVE_BIN) $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so
+	cp $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so $@
+
+
 ifeq ($(config), debug)
 
 OPT_LEVEL = -O0
 DEBUG_LEVEL = -g2 -s ASSERTIONS=1
 
-else ifeq ($(config), release)
+else
 
 #OPT_LEVEL = -Oz
 #OPT_LEVEL = -Oz -s OUTLINING_LIMIT=10000
 #DEBUG_LEVEL = -g2
 OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
-else
-
-$(error Specify a build configuration, eg: make config=dev)
-
 endif
 
 
-all: $(OUTPUT_DIR)/$(TARGET_LIB)
+web: $(OUTPUT_DIR)/$(TARGET_LIB)
 
 $(OUTPUT_DIR)/$(TARGET_LIB) : $(BIN_DIR)/$(TARGET_LIB)
 	(cp -r $(BIN_DIR)/*  $(OUTPUT_DIR) )
