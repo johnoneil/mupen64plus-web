@@ -53,8 +53,9 @@ OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
 TARGET_LIB = $(TARGET)$(POSTFIX)$(SO_EXTENSION)
 TARGET_HTML ?= index.html
 
-BOOST_DIR := boost_1_59_0
-BOOST_LIB_DIR = $(BOOST_DIR)/stage/lib
+BOOST_DIR := ./boost_1_59_0
+BOOST_LIB_DIR = $(abspath $(BOOST_DIR)/stage/lib)
+BOOST_FILESYSTEM_LIB = $(BOOST_LIB_DIR)/libboost_filesystem.a
 
 
 PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
@@ -65,8 +66,9 @@ PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
 	$(PLUGINS_DIR)/$(RICE_VIDEO_LIB)
 
 INPUT_FILES = \
-	$(BIN_DIR)/InputAutoCfg.ini \
-	$(BIN_DIR)/Glide64mk2.ini \
+	$(BIN_DIR)/data/InputAutoCfg.ini \
+	$(BIN_DIR)/data/Glide64mk2.ini \
+	$(BIN_DIR)/data/RiceVideoLinux.ini \
 	$(BIN_DIR)/stats.min.js
 
 
@@ -78,8 +80,6 @@ MEMORY = 402653184
 #MEMORY = 268435456
 #MEMORY = 134217728
 
-
-#make standard native version
 NATIVE_BIN := bin
 NATIVE_PLUGINS := \
 		$(NATIVE_BIN)/libmupen64plus.so.2 \
@@ -244,8 +244,8 @@ $(BIN_DIR) :
 	#Creating output directory
 	mkdir -p $(BIN_DIR)
 
-$(BOOST_LIB_DIR)/libboost_filesystem.a:
-	cd $(BOOST_DIR) && ./b2 --test-config=user-config.jam toolset=emscripten link=static
+$(BOOST_FILESYSTEM_LIB):
+	cd $(BOOST_DIR) && ./bootstrap.sh && ./b2 --test-config=user-config.jam toolset=emscripten link=static
 
 $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 	cd $(RICE_VIDEO_DIR) && \
@@ -270,16 +270,23 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 			all
 
 # input files helpers
-$(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
+$(BIN_DIR)/data/InputAutoCfg.ini : $(CFG_DIR)/InputAutoCfg.ini
+	mkdir -p $(@D)
 	cp $< $@
 
-$(BIN_DIR)/Glide64mk2.ini : mupen64plus-video-glide64mk2/data/Glide64mk2.ini
+$(BIN_DIR)/data/Glide64mk2.ini : $(GLIDE_CFG_DIR)/Glide64mk2.ini	
+	mkdir -p $(@D)
 	cp $< $@
+
+$(BIN_DIR)/data/RiceVideoLinux.ini : $(RICE_CFG_DIR)/RiceVideoLinux.ini
+	cp $< $@
+	mkdir -p $(@D)
+
 
 $(BIN_DIR)/stats.min.js : $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES)
+$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES) Makefile
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
@@ -297,7 +304,11 @@ $(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR
 			GL_CFLAGS="" \
 			GLU_CFLAGS="" \
 			V=1 \
-			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
+			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 \
+			--preload-file $(BIN_DIR)/plugins@plugins \
+			--preload-file $(BIN_DIR)/data@data  \
+			--preload-file $(BIN_DIR)/roms@roms \
+			-s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
 			all
 	(cp $(UI_DIR)/customIndex.html  $(BIN_DIR)/$(TARGET_HTML) )
 
@@ -343,7 +354,7 @@ $(AUDIO_DIR)/$(AUDIO_LIB) :
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
-$(VIDEO_DIR)/$(VIDEO_LIB) :
+$(VIDEO_DIR)/$(VIDEO_LIB) : $(BOOST_FILESYSTEM_LIB)
 	cd $(VIDEO_DIR) && \
 	emmake make \
 		POSTFIX=-web \
@@ -365,7 +376,7 @@ $(VIDEO_DIR)/$(VIDEO_LIB) :
 		-DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
-$(INPUT_DIR)/$(INPUT_LIB) :
+$(INPUT_DIR)/$(INPUT_LIB) : $(BOOST_FILESYSTEM_LIB)
 	cd $(INPUT_DIR) && \
 	emmake make \
 		POSTFIX=-web \
