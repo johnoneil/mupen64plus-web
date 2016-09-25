@@ -15,7 +15,7 @@ ROMS_DIR ?= roms
 INPUT_ROM ?= m64p_test_rom.v64
 INPUT_ROM_PATH = $(ROMS_DIR)/$(INPUT_ROM)
 BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
-
+SCRIPTS_DIR := ./scripts
 
 POSTFIX ?= -web
 SO_EXTENSION ?= .js
@@ -276,7 +276,7 @@ $(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
 $(BIN_DIR)/Glide64mk2.ini : mupen64plus-video-glide64mk2/data/Glide64mk2.ini
 	cp $< $@
 
-$(BIN_DIR)/stats.min.js : $(UI_DIR)/stats.min.js
+$(BIN_DIR)/stats.min.js : $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
 $(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES)
