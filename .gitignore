@@ -30,3 +30,7 @@
 /games
 /roms/*
 bin/
+
+boost_1_59_0/bin.v2/*
+boost_1_59_0/project-config.jam.2
+
