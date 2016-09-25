@@ -60,7 +60,14 @@ MEMORY = 402653184
 
 #make standard native version
 NATIVE_BIN := bin
-NATIVE_PLUGINS := $(NATIVE_BIN)/libmupen64plus.so.2 $(NATIVE_BIN)/mupen64plus-input-sdl.so $(NATIVE_BIN)/mupen64plus-rsp-hle.so $(NATIVE_BIN)/mupen64plus-video-glide64mk2.so $(NATIVE_BIN)/mupen64plus-video-rice.so
+NATIVE_PLUGINS := \
+		$(NATIVE_BIN)/libmupen64plus.so.2 \
+		$(NATIVE_BIN)/mupen64plus-input-sdl.so \
+		$(NATIVE_BIN)/mupen64plus-rsp-hle.so \
+		$(NATIVE_BIN)/mupen64plus-video-glide64mk2.so \
+		$(NATIVE_BIN)/mupen64plus-video-rice.so \
+		$(NATIVE_BIN)/mupen64plus-audio-sdl.so
+
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
 
 all: $(NATIVE_PLUGINS) $(NATIVE_EXE)
@@ -88,10 +95,9 @@ native-clean:
 	cd $(RSP_DIR) && $(MAKE) clean
 	cd $(VIDEO_DIR) && $(MAKE) clean
 	cd $(RICE_VIDEO_DIR) && $(MAKE) clean
+	cd $(AUDIO_DIR) && $(MAKE) clean
 
 rebuild: native-clean all
-
-
 
 $(NATIVE_BIN):
 	mkdir $(NATIVE_BIN)
@@ -131,6 +137,18 @@ $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so:
 
 $(NATIVE_BIN)/mupen64plus-video-rice.so: $(NATIVE_BIN) $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so
 	cp $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so $@
+
+$(AUDIO_DIR)/mupen64plus-audio-sdl.so:
+	cd $(AUDIO_DIR) && $(MAKE) all
+
+$(NATIVE_BIN)/mupen64plus-audio-sdl.so: $(NATIVE_BIN) $(AUDIO_DIR)/mupen64plus-audio-sdl.so
+	cp $(AUDIO_DIR)/mupen64plus-audio-sdl.so $@
+
+
+
+
+
+
 
 
 ifeq ($(config), debug)
