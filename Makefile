@@ -21,7 +21,7 @@ SO_EXTENSION ?= .js
 
 CORE ?= mupen64plus-core
 CORE_DIR = $(CORE)/projects/unix
-CORE_LIB = libmupen64plus.so.2$(SO_EXTENSION)
+CORE_LIB = $(CORE)$(POSTFIX)$(SO_EXTENSION)
 
 AUDIO ?= mupen64plus-audio-sdl
 AUDIO_DIR = $(AUDIO)/projects/unix/
@@ -48,6 +48,7 @@ BIN_DIR = mupen64plus-ui-console/projects/unix
 PLUGINS_DIR = $(BIN_DIR)/plugins
 OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
 TARGET_LIB = $(TARGET)$(POSTFIX)$(SO_EXTENSION)
+TARGET_HTML ?= index.html
 
 BOOST_DIR := boost_1_59_0
 BOOST_LIB_DIR = $(BOOST_DIR)/stage/lib
@@ -86,7 +87,7 @@ NATIVE_PLUGINS := \
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
 NATIVE_DEPS := $(NATIVE_PLUGINS) $(NATIVE_EXE)
 
-WEB_DEPS := $(OUTPUT_DIR)/$(TARGET_LIB)
+WEB_DEPS := $(OUTPUT_DIR)/$(TARGET_HTML)
 
 ALL_DEPS := $(WEB_DEPS)
 ifeq ($(PLATFORM), native)
@@ -245,11 +246,10 @@ $(OUTPUT_DIR) :
 $(BOOST_LIB_DIR)/libboost_filesystem.a:
 	cd $(BOOST_DIR) && ./b2 --test-config=user-config.jam toolset=emscripten link=static
 
-#build rice video plugin via its own
-rice:
+$(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 	cd $(RICE_VIDEO_DIR) && \
 			emmake $(MAKE) \
-		  CROSS_COMPILE="" \
+			CROSS_COMPILE="" \
 			POSTFIX=-web\
 			UNAME=Linux \
 			USE_FRAMESKIPPER=1 \
@@ -265,7 +265,7 @@ rice:
 			GLU_CFLAGS="" \
 			V=1 \
 			LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-			OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1 $(EMRUN)" \
+			OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
 			all
 
 # input files helpers
@@ -275,32 +275,31 @@ $(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
 $(BIN_DIR)/Glide64mk2.ini : mupen64plus-video-glide64mk2/data/Glide64mk2.ini
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_DIR) $(INPUT_FILES)
+$(OUTPUT_DIR)/$(TARGET_HTML): $(OUTPUT_DIR) $(BIN_DIR)/$(TARGET_HTML)
+	cp -r $(BIN_DIR)/* $(OUTPUT_DIR)
+
+$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_DIR) $(INPUT_FILES)
 	# building UI (program entry point)
 	cd $(BIN_DIR) && \
-	rm -fr _obj && \
-	EMCC_FORCE_STDLIBS=1 emmake make \
-	  POSTFIX=-web \
-		TARGET=index.html \
-		UNAME=Linux \
-		EMSCRIPTEN=1 \
-		EXEEXT=".html" \
-		USE_GLES=1 NO_ASM=1 \
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) \
-		-s MAIN_MODULE=1 --preload-file plugins \
-		--preload-file data  --preload-file roms \
-		-s TOTAL_MEMORY=$(MEMORY) \
-		-s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1\
-		-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
-		all
+			rm $(TARGET_HTML) \
+			rm -fr _obj && \
+			EMCC_FORCE_STDLIBS=1 emmake make \
+			POSTFIX=-web \
+			TARGET=$(TARGET_HTML) \
+			UNAME=Linux \
+			EMSCRIPTEN=1 \
+			EXEEXT=".html" \
+			USE_GLES=1 NO_ASM=1 \
+			ZLIB_CFLAGS="-s USE_ZLIB=1" \
+			PKG_CONFIG="" \
+			LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
+			SDL_CFLAGS="-s USE_SDL=2" \
+			FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
+			GL_CFLAGS="" \
+			GLU_CFLAGS="" \
+			V=1 \
+			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
+			all
 	(cp $(BIN_DIR)/customIndex.html  $(BIN_DIR)/index.html )
 
 $(CORE_DIR)/$(CORE_LIB) :
@@ -309,7 +308,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 		POSTFIX=-web \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
-		TARGET="libmupen64plus.so.2.js" \
+		TARGET="$(CORE_LIB)" \
 		SONAME="" \
 		USE_GLES=1 NO_ASM=1 \
 		ZLIB_CFLAGS="-s USE_ZLIB=1" \
@@ -320,7 +319,7 @@ $(CORE_DIR)/$(CORE_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -DEMSCRIPTEN=1 -DONSCREEN_FPS=1 $(EMRUN)" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -DEMSCRIPTEN=1 -DONSCREEN_FPS=1" \
 		all
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
@@ -342,7 +341,7 @@ $(AUDIO_DIR)/$(AUDIO_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 $(EMRUN)" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
 $(VIDEO_DIR)/$(VIDEO_LIB) :
@@ -364,10 +363,8 @@ $(VIDEO_DIR)/$(VIDEO_LIB) :
 		LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DUSE_FRAMESKIPPER=1\
 		-I../../../boost_1_59_0 \
-		-DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 $(EMRUN)" \
+		-DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
-
-$(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB) : rice
 
 $(INPUT_DIR)/$(INPUT_LIB) :
 	cd $(INPUT_DIR) && \
@@ -385,7 +382,7 @@ $(INPUT_DIR)/$(INPUT_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 $(EMRUN)" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
 		all
 
 $(RSP_DIR)/$(RSP_LIB) :
@@ -404,7 +401,7 @@ $(RSP_DIR)/$(RSP_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1 $(EMRUN)" \
+		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
 		all
 
 
@@ -429,7 +426,7 @@ clean-web:
 		V=1 \
 		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms --preload-file Glide64mk2.ini --preload-file InputAutoCfg.ini -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -DEMSCRIPTEN=1" \
 		clean
-	rm -f -r $(BIN_DIR)/_obj
+	rm -f -r $(BIN_DIR)/_obj$(POSTFIX)
 	rm -f $(BIN_DIR)/$(TARGET_LIB)
 	cd $(AUDIO_DIR) && \
 	emmake make \
