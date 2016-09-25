@@ -1,40 +1,56 @@
+# build native or web version of mupen64-plus
+# build with 'make platform=native' for web build
+# or do 'make native' for native or 'make web' for web
+# To run the same switches apply:
+# 'make run-web' or 'make run platform=web'
+# or
+# 'make run-platform' or 'make run platform=web'
+PLATFORM ?= web
+ifeq ($(platform), native)
+		PLATFORM := native
+endif
 
+GAMES_DIR ?= ./games
 ROMS_DIR ?= roms
-INPUT_ROM ?= $(ROMS_DIR)/m64p_test_rom.v64
-GAMES_DIR ?= games
+INPUT_ROM ?= m64p_test_rom.v64
+INPUT_ROM_PATH = $(ROMS_DIR)/$(INPUT_ROM)
 OUTPUT_DIR ?= $(abspath $(GAMES_DIR)/$(INPUT_ROM))
+
+POSTFIX ?= -web
+SO_EXTENSION ?= .js
 
 CORE ?= mupen64plus-core
 CORE_DIR = $(CORE)/projects/unix
-CORE_LIB = libmupen64plus.so.2.js
+CORE_LIB = libmupen64plus.so.2$(SO_EXTENSION)
 
 AUDIO ?= mupen64plus-audio-sdl
 AUDIO_DIR = $(AUDIO)/projects/unix/
-AUDIO_LIB = $(AUDIO).js
-
+AUDIO_LIB = $(AUDIO)$(POSTFIX)$(SO_EXTENSION)
 
 VIDEO ?= mupen64plus-video-glide64mk2
 VIDEO_DIR = $(VIDEO)/projects/unix
-VIDEO_LIB = $(VIDEO).js
+VIDEO_LIB = $(VIDEO)$(POSTFIX)$(SO_EXTENSION)
 
-RICE_VIDEO_LIB = mupen64plus-video-rice.js
-RICE_VIDEO_DIR = mupen64plus-video-rice/projects/unix/
+RICE = mupen64plus-video-rice
+RICE_VIDEO_LIB = $(RICE)$(POSTFIX)$(SO_EXTENSION)
+RICE_VIDEO_DIR = $(RICE)/projects/unix/
 
 INPUT ?= mupen64plus-input-sdl
 INPUT_DIR = $(INPUT)/projects/unix
-INPUT_LIB = $(INPUT).js
+INPUT_LIB = $(INPUT)$(POSTFIX)$(SO_EXTENSION)
 
 RSP ?= mupen64plus-rsp-hle
 RSP_DIR = $(RSP)/projects/unix
-RSP_LIB = $(RSP).js
+RSP_LIB = $(RSP)$(POSTFIX)$(SO_EXTENSION)
 
 TARGET ?= mupen64plus
 BIN_DIR = mupen64plus-ui-console/projects/unix
 PLUGINS_DIR = $(BIN_DIR)/plugins
 OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
-TARGET_LIB = $(TARGET).js
+TARGET_LIB = $(TARGET)$(POSTFIX)$(SO_EXTENSION)
 
-BOOST_LIB_DIR = boost_1_59_0/stage/lib
+BOOST_DIR := boost_1_59_0
+BOOST_LIB_DIR = $(BOOST_DIR)/stage/lib
 
 
 PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
@@ -66,11 +82,22 @@ NATIVE_PLUGINS := \
 		$(NATIVE_BIN)/mupen64plus-rsp-hle.so \
 		$(NATIVE_BIN)/mupen64plus-video-glide64mk2.so \
 		$(NATIVE_BIN)/mupen64plus-video-rice.so \
-		$(NATIVE_BIN)/mupen64plus-audio-sdl.so
 
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
+NATIVE_DEPS := $(NATIVE_PLUGINS) $(NATIVE_EXE)
 
-all: $(NATIVE_PLUGINS) $(NATIVE_EXE)
+WEB_DEPS := $(OUTPUT_DIR)/$(TARGET_LIB)
+
+ALL_DEPS := $(WEB_DEPS)
+ifeq ($(PLATFORM), native)
+		ALL_DEPS := $(NATIVE_DEPS)
+endif
+
+all: $(ALL_DEPS)
+
+native: $(NATIVE_DEPS)
+
+web: $(WEB_DEPS)
 
 RICE_CFG_DIR := cfg/rice
 GLIDE_CFG_DIR := cfg/glide
@@ -81,14 +108,19 @@ ifdef glide
 		CFG_DIR := $(GLIDE_CFG_DIR)
 endif
 
-run: all
+run-native: $(NATIVE_DEPS)
 	./$(NATIVE_EXE) $(INPUT_ROM) \
 			--corelib $(NATIVE_BIN)/libmupen64plus.so.2 \
 			--configdir $(CFG_DIR) \
 			--datadir $(CFG_DIR) \
-			$(INPUT_ROM)
+			$(ROMS_DIR)/$(INPUT_ROM)
 
-native-clean:
+run-web: $(WEB_DEPS)
+	emrun $(OUTPUT_DIR)/index.html
+
+run: run-$(PLATFORM)
+
+clean-native:
 	cd mupen64plus-ui-console/projects/unix && $(MAKE) clean
 	cd $(CORE_DIR) && $(MAKE) clean
 	cd $(INPUT_DIR) && $(MAKE) clean
@@ -97,7 +129,9 @@ native-clean:
 	cd $(RICE_VIDEO_DIR) && $(MAKE) clean
 	cd $(AUDIO_DIR) && $(MAKE) clean
 
-rebuild: native-clean all
+clean: clean-$(PLATFORM)
+
+rebuild: clean all
 
 $(NATIVE_BIN):
 	mkdir $(NATIVE_BIN)
@@ -145,12 +179,6 @@ $(NATIVE_BIN)/mupen64plus-audio-sdl.so: $(NATIVE_BIN) $(AUDIO_DIR)/mupen64plus-a
 	cp $(AUDIO_DIR)/mupen64plus-audio-sdl.so $@
 
 
-
-
-
-
-
-
 ifeq ($(config), debug)
 
 OPT_LEVEL = -O0
@@ -165,13 +193,8 @@ OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
 endif
 
-
-web: $(OUTPUT_DIR)/$(TARGET_LIB)
-
 $(OUTPUT_DIR)/$(TARGET_LIB) : $(BIN_DIR)/$(TARGET_LIB)
 	(cp -r $(BIN_DIR)/*  $(OUTPUT_DIR) )
-
-
 
 #$(PLUGINS_DIR)/%.js : %/projects/unix/%.js
 #	cp "$<" "$@"
@@ -211,14 +234,14 @@ $(OUTPUT_DIR) :
 	mkdir -p $(OUTPUT_DIR)
 
 $(BOOST_LIB_DIR)/libboost_filesystem.a:
-	pushd boost_1_59_0
-	./b2 --test-config=user-config.jam toolset=emscripten link=static
-	popd
+	cd $(BOOST_DIR) && ./b2 --test-config=user-config.jam toolset=emscripten link=static
 
 #build rice video plugin via its own
 rice:
 	cd $(RICE_VIDEO_DIR) && \
-	emmake make \
+			emmake $(MAKE) \
+		  CROSS_COMPILE="" \
+			POSTFIX=-web\
 			UNAME=Linux \
 			USE_FRAMESKIPPER=1 \
 			EMSCRIPTEN=1 \
@@ -248,6 +271,7 @@ $(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_D
 	cd $(BIN_DIR) && \
 	rm -fr _obj && \
 	EMCC_FORCE_STDLIBS=1 emmake make \
+	  POSTFIX=-web \
 		TARGET=index.html \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
@@ -273,6 +297,7 @@ $(BIN_DIR)/$(TARGET_LIB) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_D
 $(CORE_DIR)/$(CORE_LIB) :
 	cd $(CORE_DIR) && \
 	emmake make \
+		POSTFIX=-web \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
 		TARGET="libmupen64plus.so.2.js" \
@@ -291,8 +316,9 @@ $(CORE_DIR)/$(CORE_LIB) :
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
 	cd $(AUDIO_DIR) && \
-	emmake make \
-	UNAME="Linux" \
+		emmake make \
+		POSTFIX=-web \
+		UNAME="Linux" \
 		EMSCRIPTEN=1 \
 		NO_SRC=1 \
 		NO_SPEEX=1 \
@@ -313,6 +339,7 @@ $(AUDIO_DIR)/$(AUDIO_LIB) :
 $(VIDEO_DIR)/$(VIDEO_LIB) :
 	cd $(VIDEO_DIR) && \
 	emmake make \
+		POSTFIX=-web \
 		USE_FRAMESKIPPER=1 \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -336,6 +363,7 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB) : rice
 $(INPUT_DIR)/$(INPUT_LIB) :
 	cd $(INPUT_DIR) && \
 	emmake make \
+		POSTFIX=-web \
 		UNAME="Linux" \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -354,6 +382,7 @@ $(INPUT_DIR)/$(INPUT_LIB) :
 $(RSP_DIR)/$(RSP_LIB) :
 	cd $(RSP_DIR)&& \
 	emmake make \
+		POSTFIX=-web \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -370,15 +399,13 @@ $(RSP_DIR)/$(RSP_LIB) :
 		all
 
 
-
-
-
-clean:
+clean-web:
 	rm -f $(CORE_DIR)/$(CORE_LIB)
 	rm -f $(PLUGINS_DIR)/*
 	rm -f $(OUTPUT_ROMS_DIR)/*
 	cd $(BIN_DIR) && \
 	EMCC_FORCE_STDLIBS=1 emmake make \
+	  POSTFIX=-web \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
 		EXEEXT=".html" \
@@ -397,7 +424,8 @@ clean:
 	rm -f $(BIN_DIR)/$(TARGET_LIB)
 	cd $(AUDIO_DIR) && \
 	emmake make \
-	UNAME="Linux" \
+		POSTFIX=-web \
+		UNAME="Linux" \
 		EMSCRIPTEN=1 \
 		NO_SRC=1 \
 		NO_SPEEX=1 \
@@ -416,6 +444,7 @@ clean:
 		clean
 	cd $(VIDEO_DIR) && \
 	emmake make \
+		POSTFIX=-web \
 		UNAME="Linux" \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -433,6 +462,7 @@ clean:
 		clean
 	cd $(INPUT_DIR) && \
 	emmake make \
+		POSTFIX=-web \
 		UNAME="Linux" \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -449,6 +479,7 @@ clean:
 		clean
 	cd $(RSP_DIR)&& \
 	emmake make \
+		POSTFIX=-web \
 		UNAME=Linux \
 		EMSCRIPTEN=1 \
 		SO_EXTENSION="js" \
@@ -465,6 +496,7 @@ clean:
 		clean
 		cd $(RICE_VIDEO_DIR) && \
 		emmake make \
+				POSTFIX=-web \
 				UNAME=Linux \
 				USE_FRAMESKIPPER=1 \
 				EMSCRIPTEN=1 \
