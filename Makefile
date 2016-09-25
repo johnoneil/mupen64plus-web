@@ -14,10 +14,14 @@ GAMES_DIR ?= ./games
 ROMS_DIR ?= roms
 INPUT_ROM ?= m64p_test_rom.v64
 INPUT_ROM_PATH = $(ROMS_DIR)/$(INPUT_ROM)
-OUTPUT_DIR ?= $(abspath $(GAMES_DIR)/$(INPUT_ROM))
+BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
+
 
 POSTFIX ?= -web
 SO_EXTENSION ?= .js
+
+UI ?= mupen64plus-ui-console
+UI_DIR = $(UI)/projects/unix
 
 CORE ?= mupen64plus-core
 CORE_DIR = $(CORE)/projects/unix
@@ -44,7 +48,6 @@ RSP_DIR = $(RSP)/projects/unix
 RSP_LIB = $(RSP)$(POSTFIX)$(SO_EXTENSION)
 
 TARGET ?= mupen64plus
-BIN_DIR = mupen64plus-ui-console/projects/unix
 PLUGINS_DIR = $(BIN_DIR)/plugins
 OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
 TARGET_LIB = $(TARGET)$(POSTFIX)$(SO_EXTENSION)
@@ -63,7 +66,8 @@ PLUGINS = $(PLUGINS_DIR)/$(CORE_LIB) \
 
 INPUT_FILES = \
 	$(BIN_DIR)/InputAutoCfg.ini \
-	$(BIN_DIR)/Glide64mk2.ini
+	$(BIN_DIR)/Glide64mk2.ini \
+	$(BIN_DIR)/stats.min.js
 
 
 OPT_LEVEL = -O0
@@ -87,7 +91,7 @@ NATIVE_PLUGINS := \
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
 NATIVE_DEPS := $(NATIVE_PLUGINS) $(NATIVE_EXE)
 
-WEB_DEPS := $(OUTPUT_DIR)/$(TARGET_HTML)
+WEB_DEPS := $(BIN_DIR)/$(TARGET_HTML)
 
 ALL_DEPS := $(WEB_DEPS)
 ifeq ($(PLATFORM), native)
@@ -126,7 +130,7 @@ endif
 EMRUN ?= --emrun
 
 run-web: $(WEB_DEPS)
-	emrun $ --browser $(BROWSER) $(OUTPUT_DIR)/index.html
+	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html
 
 run: run-$(PLATFORM)
 
@@ -203,9 +207,6 @@ OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
 endif
 
-$(OUTPUT_DIR)/$(TARGET_LIB) : $(BIN_DIR)/$(TARGET_LIB)
-	(cp -r $(BIN_DIR)/*  $(OUTPUT_DIR) )
-
 #$(PLUGINS_DIR)/%.js : %/projects/unix/%.js
 #	cp "$<" "$@"
 
@@ -239,9 +240,9 @@ $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) : $(ROMS_DIR)/$(INPUT_ROM)
 	rm -f $(OUTPUT_ROMS_DIR)/*
 	cp "$<" "$@"
 
-$(OUTPUT_DIR) :
+$(BIN_DIR) :
 	#Creating output directory
-	mkdir -p $(OUTPUT_DIR)
+	mkdir -p $(BIN_DIR)
 
 $(BOOST_LIB_DIR)/libboost_filesystem.a:
 	cd $(BOOST_DIR) && ./b2 --test-config=user-config.jam toolset=emscripten link=static
@@ -275,17 +276,15 @@ $(BIN_DIR)/InputAutoCfg.ini : mupen64plus-input-sdl/data/InputAutoCfg.ini
 $(BIN_DIR)/Glide64mk2.ini : mupen64plus-video-glide64mk2/data/Glide64mk2.ini
 	cp $< $@
 
-$(OUTPUT_DIR)/$(TARGET_HTML): $(OUTPUT_DIR) $(BIN_DIR)/$(TARGET_HTML)
-	cp -r $(BIN_DIR)/* $(OUTPUT_DIR)
+$(BIN_DIR)/stats.min.js : $(UI_DIR)/stats.min.js
+	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_DIR) $(INPUT_FILES)
+$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES)
 	# building UI (program entry point)
-	cd $(BIN_DIR) && \
-			rm $(TARGET_HTML) \
-			rm -fr _obj && \
+	cd $(UI_DIR) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
 			POSTFIX=-web \
-			TARGET=$(TARGET_HTML) \
+			TARGET=$(BIN_DIR)/$(TARGET_HTML) \
 			UNAME=Linux \
 			EMSCRIPTEN=1 \
 			EXEEXT=".html" \
@@ -300,7 +299,7 @@ $(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(OUTPUT_
 			V=1 \
 			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
 			all
-	(cp $(BIN_DIR)/customIndex.html  $(BIN_DIR)/index.html )
+	(cp $(UI_DIR)/customIndex.html  $(BIN_DIR)/$(TARGET_HTML) )
 
 $(CORE_DIR)/$(CORE_LIB) :
 	cd $(CORE_DIR) && \
@@ -406,116 +405,18 @@ $(RSP_DIR)/$(RSP_LIB) :
 
 
 clean-web:
-	rm -f $(CORE_DIR)/$(CORE_LIB)
-	rm -f $(PLUGINS_DIR)/*
-	rm -f $(OUTPUT_ROMS_DIR)/*
-	cd $(BIN_DIR) && \
-	EMCC_FORCE_STDLIBS=1 emmake make \
-	  POSTFIX=-web \
-		UNAME=Linux \
-		EMSCRIPTEN=1 \
-		EXEEXT=".html" \
-		USE_GLES=1 NO_ASM=1 \
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 --preload-file plugins --preload-file data  --preload-file roms --preload-file Glide64mk2.ini --preload-file InputAutoCfg.ini -s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -DEMSCRIPTEN=1" \
-		clean
-	rm -f -r $(BIN_DIR)/_obj$(POSTFIX)
-	rm -f $(BIN_DIR)/$(TARGET_LIB)
-	cd $(AUDIO_DIR) && \
-	emmake make \
-		POSTFIX=-web \
-		UNAME="Linux" \
-		EMSCRIPTEN=1 \
-		NO_SRC=1 \
-		NO_SPEEX=1 \
-		NO_OSS=1 \
-		SO_EXTENSION="js" \
-		USE_GLES=1 NO_ASM=1 \
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
-		clean
-	cd $(VIDEO_DIR) && \
-	emmake make \
-		POSTFIX=-web \
-		UNAME="Linux" \
-		EMSCRIPTEN=1 \
-		SO_EXTENSION="js" \
-		USE_GLES=1 NO_ASM=1 \
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
-		clean
-	cd $(INPUT_DIR) && \
-	emmake make \
-		POSTFIX=-web \
-		UNAME="Linux" \
-		EMSCRIPTEN=1 \
-		SO_EXTENSION="js" \
-		USE_GLES=1 NO_ASM=1 \
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
-		clean
-	cd $(RSP_DIR)&& \
-	emmake make \
-		POSTFIX=-web \
-		UNAME=Linux \
-		EMSCRIPTEN=1 \
-		SO_EXTENSION="js" \
-		USE_GLES=1 NO_ASM=1 NO_OSS=1 NO_SRC=1 NO_SPEEX=1\
-		ZLIB_CFLAGS="-s USE_ZLIB=1" \
-		PKG_CONFIG="" \
-		LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-		SDL_CFLAGS="-s USE_SDL=2" \
-		FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-		GL_CFLAGS="" \
-		GLU_CFLAGS="" \
-		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
-		clean
-		cd $(RICE_VIDEO_DIR) && \
-		emmake make \
-				POSTFIX=-web \
-				UNAME=Linux \
-				USE_FRAMESKIPPER=1 \
-				EMSCRIPTEN=1 \
-				SO_EXTENSION="js" \
-				USE_GLES=1 NO_ASM=1 \
-				ZLIB_CFLAGS="-s USE_ZLIB=1" \
-				PKG_CONFIG="" \
-				LIBPNG_CFLAGS="-s USE_LIBPNG=1" \
-				SDL_CFLAGS="-s USE_SDL=2" \
-				FREETYPE2_CFLAGS="-s USE_FREETYPE=1" \
-				GL_CFLAGS="" \
-				GLU_CFLAGS="" \
-				V=1 \
-				LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-				OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
-				clean
+	rm -fr $(BIN_DIR)
+	rm $(CORE_DIR)/$(CORE_LIB)
+	rm -fr $(CORE_DIR)/_obj$(POSTFIX)
+	rm $(AUDIO_DIR)/$(AUDIO_LIB)
+	rm -fr $(AUDIO_DIR)/_obj$(POSTFIX)
+	rm $(VIDEO_DIR)/$(VIDEO_LIB)
+	rm -fr $(VIDEO_DIR)/_obj$(POSTFIX)
+	rm $(INPUT_DIR)/$(INPUT_LIB)
+	rm -fr $(INPUT_DIR)/_obj$(POSTFIX)
+	rm $(RSP_DIR)/$(RSP_LIB)
+	rm -fr $(RSP_DIR)/_obj$(POSTFIX)
+	rm $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
+	rm -fr $(RICE_VIDEO_DIR)/_obj$(POSTFIX)
+
+
