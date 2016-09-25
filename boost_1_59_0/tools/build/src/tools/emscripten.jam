@@ -63,8 +63,8 @@ rule init ( version ? : command * : options * )
 
   toolset.flags emscripten.compile STDHDRS $(condition) : $(root)/libexec/system/include ;
   toolset.flags emscripten.link STDLIBPATH $(condition) : $(root)/libexec/system/lib ;
-  toolset.flags emscripten AR $(condition) : $(root)/incoming/emar ;
-  toolset.flags emscripten RANLIB $(condition) : $(root)/incoming/emranlib ;
+  toolset.flags emscripten AR $(condition) : emar ;
+  toolset.flags emscripten RANLIB $(condition) : emranlib ;
 }
 
 type.set-generated-target-suffix EXE : <toolset>emscripten : js ;
@@ -91,7 +91,7 @@ toolset.flags emscripten.compile OPTIONS <optimization>space : -Os ;
 
 toolset.flags emscripten.compile OPTIONS <inlining>off  : -fno-inline ;
 toolset.flags emscripten.compile OPTIONS <inlining>on   : -Wno-inline ;
-toolset.flags emscripten.compile OPTIONS <inlining>full : -finline-functions -Wno-inline ;
+#toolset.flags emscripten.compile OPTIONS <inlining>full : -finline-functions -Wno-inline ;
 
 toolset.flags emscripten.compile OPTIONS <warnings>off : -w ;
 toolset.flags emscripten.compile OPTIONS <warnings>on  : -Wall ;
