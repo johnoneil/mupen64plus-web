@@ -52,6 +52,8 @@ PLUGINS_DIR = $(BIN_DIR)/plugins
 OUTPUT_ROMS_DIR = $(BIN_DIR)/$(ROMS_DIR)
 TARGET_LIB = $(TARGET)$(POSTFIX)$(SO_EXTENSION)
 TARGET_HTML ?= index.html
+INDEX_TEMPLATE = $(abspath $(SCRIPTS_DIR)/index.template.html)
+MODULE_JS = module.js
 
 BOOST_DIR := ./boost_1_59_0
 BOOST_LIB_DIR = $(abspath $(BOOST_DIR)/stage/lib)
@@ -69,8 +71,9 @@ INPUT_FILES = \
 	$(BIN_DIR)/data/InputAutoCfg.ini \
 	$(BIN_DIR)/data/Glide64mk2.ini \
 	$(BIN_DIR)/data/RiceVideoLinux.ini \
-	$(BIN_DIR)/stats.min.js
-
+	$(BIN_DIR)/stats.min.js \
+	$(BIN_DIR)/$(MODULE_JS) \
+	$(INDEX_TEMPLATE) \
 
 OPT_LEVEL = -O0
 DEBUG_LEVEL = -g2
@@ -269,24 +272,29 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 			OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
 			all
 
+.FORCE:
+
 # input files helpers
-$(BIN_DIR)/data/InputAutoCfg.ini : $(CFG_DIR)/InputAutoCfg.ini
+$(BIN_DIR)/data/InputAutoCfg.ini: $(CFG_DIR)/InputAutoCfg.ini
 	mkdir -p $(@D)
 	cp $< $@
 
-$(BIN_DIR)/data/Glide64mk2.ini : $(GLIDE_CFG_DIR)/Glide64mk2.ini	
+$(BIN_DIR)/data/Glide64mk2.ini: $(GLIDE_CFG_DIR)/Glide64mk2.ini	
 	mkdir -p $(@D)
 	cp $< $@
 
-$(BIN_DIR)/data/RiceVideoLinux.ini : $(RICE_CFG_DIR)/RiceVideoLinux.ini
-	cp $< $@
+$(BIN_DIR)/data/RiceVideoLinux.ini: $(RICE_CFG_DIR)/RiceVideoLinux.ini
 	mkdir -p $(@D)
-
-
-$(BIN_DIR)/stats.min.js : $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES) Makefile
+$(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS) .FORCE
+	mkdir -p $(@D)
+	cp $< $@
+
+$(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
+	cp $< $@
+
+$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES) Makefile
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
@@ -308,9 +316,9 @@ $(BIN_DIR)/$(TARGET_HTML) : $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR
 			--preload-file $(BIN_DIR)/plugins@plugins \
 			--preload-file $(BIN_DIR)/data@data  \
 			--preload-file $(BIN_DIR)/roms@roms \
+			--shell-file $(INDEX_TEMPLATE) \
 			-s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
 			all
-	(cp $(UI_DIR)/customIndex.html  $(BIN_DIR)/$(TARGET_HTML) )
 
 $(CORE_DIR)/$(CORE_LIB) :
 	cd $(CORE_DIR) && \

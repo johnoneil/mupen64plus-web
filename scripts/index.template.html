@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <script src="stats.min.js"></script>
+    </head>
+  <body>
+    <div class="emscripten" id="status">Downloading...</div>
+    <div class="spinner" id='spinner'></div>
+    <progress value="0" max="100" id="progress" hidden=1></progress>
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <script src="module.js"></script>
+    {{{ SCRIPT }}}
+  </body>
+</html>
