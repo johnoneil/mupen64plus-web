@@ -97,7 +97,7 @@ NATIVE_PLUGINS := \
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
 NATIVE_DEPS := $(NATIVE_PLUGINS) $(NATIVE_EXE)
 
-WEB_DEPS := $(BIN_DIR)/$(TARGET_HTML)
+WEB_DEPS := $(BIN_DIR)/$(TARGET_HTML) $(TARGET_ROM)
 
 ALL_DEPS := $(WEB_DEPS)
 ifeq ($(PLATFORM), native)
@@ -298,9 +298,9 @@ $(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS)
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(TARGET_ROM) $(INPUT_FILES) Makefile
+$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
 	@mkdir -p $(BIN_DIR)
-	rm $@
+	touch $@
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
