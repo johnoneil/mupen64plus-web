@@ -11,7 +11,8 @@ ifeq ($(platform), native)
 endif
 
 GAMES_DIR ?= ./games
-ROMS_DIR ?= $(abspath ./roms)
+ROM_DIR_NAME ?= roms
+ROMS_DIR ?= $(abspath $(ROM_DIR_NAME))
 INPUT_ROM ?= m64p_test_rom.v64
 BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
 SCRIPTS_DIR := ./scripts
@@ -74,8 +75,8 @@ INPUT_FILES = \
 	$(BIN_DIR)/data/Glide64mk2.ini \
 	$(BIN_DIR)/data/RiceVideoLinux.ini \
 	$(BIN_DIR)/stats.min.js \
-	$(BIN_DIR)/$(MODULE_JS) \
 	$(INDEX_TEMPLATE) \
+	$(BIN_DIR)/$(MODULE_JS) \
 
 OPT_LEVEL = -O0
 DEBUG_LEVEL = -g2
@@ -134,8 +135,9 @@ ifeq ($(browser), chromium)
 endif
 EMRUN ?= --emrun
 
+FORWARDSLASH ?= %2F
 run-web: $(WEB_DEPS)
-	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html
+	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(INPUT_ROM)
 
 run: run-$(PLATFORM)
 
@@ -289,17 +291,18 @@ $(BIN_DIR)/data/RiceVideoLinux.ini: $(RICE_CFG_DIR)/RiceVideoLinux.ini
 	mkdir -p $(@D)
 	cp $< $@
 
-$(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS) .FORCE
+$(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS)
 	mkdir -p $(@D)
 	cp $< $@
 
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(BIN_DIR) $(TARGET_ROM) $(INPUT_FILES) Makefile
+$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(TARGET_ROM) $(INPUT_FILES) Makefile
+	@mkdir -p $(BIN_DIR)
+	rm $@
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
-			rm -fr _obj$(POSTFIX) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
 			POSTFIX=-web \
 			TARGET=$(BIN_DIR)/$(TARGET_HTML) \
