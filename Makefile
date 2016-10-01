@@ -11,11 +11,13 @@ ifeq ($(platform), native)
 endif
 
 GAMES_DIR ?= ./games
-ROMS_DIR ?= roms
+ROMS_DIR ?= $(abspath ./roms)
 INPUT_ROM ?= m64p_test_rom.v64
-INPUT_ROM_PATH = $(ROMS_DIR)/$(INPUT_ROM)
 BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
 SCRIPTS_DIR := ./scripts
+
+TARGET_ROM = $(BIN_DIR)/roms/$(INPUT_ROM)
+SOURCE_ROM = $(ROMS_DIR)/$(INPUT_ROM)
 
 POSTFIX ?= -web
 SO_EXTENSION ?= .js
@@ -238,8 +240,8 @@ $(PLUGINS_DIR)/$(RSP_LIB) : $(RSP_DIR)/$(RSP_LIB)
 	mkdir -p $(PLUGINS_DIR)
 	cp "$<" "$@"
 
-$(OUTPUT_ROMS_DIR)/$(INPUT_ROM) : $(ROMS_DIR)/$(INPUT_ROM)
-	mkdir -p $(OUTPUT_ROMS_DIR)
+$(TARGET_ROM): $(SOURCE_ROM)
+	mkdir -p $(@D)
 	rm -f $(OUTPUT_ROMS_DIR)/*
 	cp "$<" "$@"
 
@@ -294,9 +296,10 @@ $(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS) .FORCE
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INPUT_ROM) $(BIN_DIR) $(INPUT_FILES) Makefile
+$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(BIN_DIR) $(TARGET_ROM) $(INPUT_FILES) Makefile
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
+			rm -fr _obj$(POSTFIX) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
 			POSTFIX=-web \
 			TARGET=$(BIN_DIR)/$(TARGET_HTML) \
@@ -315,9 +318,13 @@ $(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(OUTPUT_ROMS_DIR)/$(INP
 			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 \
 			--preload-file $(BIN_DIR)/plugins@plugins \
 			--preload-file $(BIN_DIR)/data@data  \
-			--preload-file $(BIN_DIR)/roms@roms \
 			--shell-file $(INDEX_TEMPLATE) \
-			-s TOTAL_MEMORY=$(MEMORY) -s USE_ZLIB=1 -s USE_SDL=2 -s USE_LIBPNG=1 -s FULL_ES2=1 -DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
+			-s TOTAL_MEMORY=$(MEMORY) \
+			-s USE_ZLIB=1 \
+			-s USE_SDL=2 \
+			-s USE_LIBPNG=1 \
+			-s FULL_ES2=1 \
+			-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
 			all
 
 $(CORE_DIR)/$(CORE_LIB) :

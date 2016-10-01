@@ -65,6 +65,44 @@ var Module = {
         monitorRunDependencies: function(left) {
           this.totalDependencies = Math.max(this.totalDependencies, left);
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        },
+        fetchFile : function(url, filepath, onload, onerror) {
+          console.log("Fetching file ",filepath," from url: ",url);
+          var path = filepath.substr(0, filepath.lastIndexOf('/'));
+          var filename =  filepath.substr(filepath.lastIndexOf('/')+1);
+          console.log("will create file at path: ", path, " and filename: ", filename);
+          var xhr = new XMLHttpRequest();
+          xhr.overrideMimeType('test/pain; charset=x-user-defined');
+          xhr.onreadystatechange = function(e) {
+            if(xhr.readyState == 4) {
+              if(xhr.status == 200) {
+                try {
+                  console.log("size of xhr is ", xhr.response.length);
+                  FS.createDataFile(path, filename, xhr.response, true, true);
+                  console.log("url ", url," loaded and written to file ", filepath);
+                  if(onload) {
+                    onload();
+                  }
+                }catch(e){
+                  if(onerror){
+                    onerror();  
+                  }
+                }
+              } else {
+                if(onerror) {
+                  onerror();
+                }
+              }
+            }
+          };
+          xhr.onerror = function(e) {
+            console.error("error loding url: ",url," error: ", e);
+            if(onerror){
+              onerror();     
+            }
+          };
+          xhr.open("GET", url, true);
+          xhr.send();
         }
       };
       Module.setStatus('Downloading...');
