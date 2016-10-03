@@ -93,6 +93,7 @@ NATIVE_PLUGINS := \
 		$(NATIVE_BIN)/mupen64plus-rsp-hle.so \
 		$(NATIVE_BIN)/mupen64plus-video-glide64mk2.so \
 		$(NATIVE_BIN)/mupen64plus-video-rice.so \
+		$(NATIVE_BIN)/mupen64plus-audio-sdl.so \
 
 NATIVE_EXE := $(NATIVE_BIN)/mupen64plus
 NATIVE_DEPS := $(NATIVE_PLUGINS) $(NATIVE_EXE)
@@ -137,7 +138,7 @@ EMRUN ?= --emrun
 
 FORWARDSLASH ?= %2F
 run-web: $(WEB_DEPS)
-	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(INPUT_ROM)
+	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html --nospeedlimit  $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(INPUT_ROM)
 
 run: run-$(PLATFORM)
 
@@ -189,6 +190,9 @@ $(NATIVE_BIN)/mupen64plus-video-glide64mk2.so: $(NATIVE_BIN) $(VIDEO_DIR)/mupen6
 
 $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so:
 	cd $(RICE_VIDEO_DIR) && $(MAKE) all
+
+$(RICE_VIDEO_DIR)/mupen64plus-audio-sdl:
+	cd $(AUDIO_DIR) && $(MAKE) all
 
 $(NATIVE_BIN)/mupen64plus-video-rice.so: $(NATIVE_BIN) $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so
 	cp $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so $@
@@ -300,7 +304,7 @@ $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 
 $(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
 	@mkdir -p $(BIN_DIR)
-	touch $@
+	rm -f $@
 	# building UI (program entry point)
 	cd $(UI_DIR) && \
 			EMCC_FORCE_STDLIBS=1 emmake make \
