@@ -30,9 +30,9 @@ CORE ?= mupen64plus-core
 CORE_DIR = $(CORE)/projects/unix
 CORE_LIB = $(CORE)$(POSTFIX)$(SO_EXTENSION)
 
-AUDIO ?= mupen64plus-audio-sdl
+AUDIO ?= mupen64plus-audio-web
 AUDIO_DIR = $(AUDIO)/projects/unix/
-AUDIO_LIB = $(AUDIO)$(POSTFIX)$(SO_EXTENSION)
+AUDIO_LIB = $(AUDIO)$(SO_EXTENSION)
 
 VIDEO ?= mupen64plus-video-glide64mk2
 VIDEO_DIR = $(VIDEO)/projects/unix
