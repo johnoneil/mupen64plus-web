@@ -34,3 +34,6 @@
 boost_1_59_0/bin.v2/*
 boost_1_59_0/project-config.jam.2
 
+# web audio plugin
+mupen64plus-audio-web/projects/unix/_obj-web
+mupen64plus-audio-web/projects/unix/mupen64plus-audio-web.js
