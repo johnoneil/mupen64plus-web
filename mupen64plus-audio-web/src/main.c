@@ -534,9 +534,10 @@ EXPORT void CALL AiLenChanged( void )
 	    //var simulatedHWClock = now;///1000.0;
 
 	    //if(soundStopTime < context.currentTime + LOOKAHEAD) {
-	    if(Module.audio.soundStopTime < now + Module.audio.LOOKAHEAD && Module.audio.rightData && Module.audio.rightData.length) {
+	    //if(Module.audio.soundStopTime < now + Module.audio.LOOKAHEAD && Module.audio.leftData && Module.audio.leftData.length) {
+	    if(Module.audio.leftData && Module.audio.leftData.length) {
 	      //console.error('adding buffer at time: ' +  Module.audio.context.currentTime.toString() + ' Sound due to stop at: ' + soundStopTime.toString());
-	      buffer = Module.audio.context.createBuffer(2, Module.audio.SAMPLE_RATE*Module.audio.BUFFER_LENGTH_S, Module.audio.SAMPLE_RATE);
+	      var buffer = Module.audio.context.createBuffer(2, Module.audio.leftData.length, Module.audio.SAMPLE_RATE);
 	      soundDataLeft = buffer.getChannelData(0);
 				soundDataRight = buffer.getChannelData(1);
 				var numOfSamplesSubmitted = soundDataLeft.length;
@@ -556,7 +557,7 @@ EXPORT void CALL AiLenChanged( void )
 				}
 
 	      bufferSource.start(Module.audio.soundStopTime);
-	      Module.audio.soundStopTime = Module.audio.soundStopTime + numOfSamplesSubmitted / Module.audio.SAMPLE_RATE;
+	      Module.audio.soundStopTime = Module.audio.soundStopTime + buffer.duration;
 
 	      //console.error('Setting new stop sound time at context time ' + context.currentTime.toString() + ' to: ' + soundStopTime);
 
