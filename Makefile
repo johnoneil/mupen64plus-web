@@ -75,6 +75,9 @@ INPUT_FILES = \
 	$(BIN_DIR)/data/Glide64mk2.ini \
 	$(BIN_DIR)/data/RiceVideoLinux.ini \
 	$(BIN_DIR)/stats.min.js \
+	$(BIN_DIR)/data/mupen64plus.cfg \
+	$(BIN_DIR)/data/mupen64plus.ini \
+	$(BIN_DIR)/data/mupencheat.txt \
 	$(INDEX_TEMPLATE) \
 	$(BIN_DIR)/$(MODULE_JS) \
 
@@ -300,6 +303,15 @@ $(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS)
 	cp $< $@
 
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
+	cp $< $@
+
+$(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg
+	cp $< $@
+
+$(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini
+	cp $< $@
+	
+$(BIN_DIR)/data/mupencheat.txt: $(CFG_DIR)/mupencheat.txt
 	cp $< $@
 
 $(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
