@@ -445,186 +445,51 @@ EXPORT void CALL AiLenChanged( void )
     LenReg = *AudioInfo.AI_LEN_REG;
     p = AudioInfo.RDRAM + (*AudioInfo.AI_DRAM_ADDR_REG & 0xFFFFFF);
 
-    //if (buffer_pos + LenReg < primaryBufferBytes)
-		buffer_pos = 0;
+		// We have a buffer pointer and number of samples
+		// Just pass them to webaudio.
+		EM_ASM_INT({
 
-		if(1)
-    {
-        unsigned int i;
+				var pBuffer = $0|0;
+				var bufferSize = $1|0;
+				
+				var now = Module.audio.context.currentTime;
+				var numSamples = bufferSize / 4; // 2 channels of 16bit sound, 4 bytes per sample.
 
-        //SDL_LockAudio();
-        for ( i = 0 ; i < LenReg ; i += 4 )
-        {
+				// Unpack our samples into a new webaudio buffer
+	      var newBuffer = Module.audio.context.createBuffer(2, numSamples, Module.audio.SAMPLE_RATE);
+		    soundDataLeft = newBuffer.getChannelData(0);
+				soundDataRight = newBuffer.getChannelData(1);
+			
+				var n  = 0; // number of sample frames generated
+				for(var i=0; i < bufferSize/2; i++) {
 
-            if(SwapChannels == 0)
-            {
-                // Left channel
-                primaryBuffer[ buffer_pos + i ] = p[ i + 2 ];
-                primaryBuffer[ buffer_pos + i + 1 ] = p[ i + 3 ];
+						var address = pBuffer + i * 2;
+						var sample = getValue(address, 'i16')/32768.0;
 
-                // Right channel
-                primaryBuffer[ buffer_pos + i + 2 ] = p[ i ];
-                primaryBuffer[ buffer_pos + i + 3 ] = p[ i + 1 ];
-            } else {
-                // Left channel
-                primaryBuffer[ buffer_pos + i ] = p[ i ];
-                primaryBuffer[ buffer_pos + i + 1 ] = p[ i + 1 ];
-
-                // Right channel
-                primaryBuffer[ buffer_pos + i + 2 ] = p[ i + 2];
-                primaryBuffer[ buffer_pos + i + 3 ] = p[ i + 3 ];
-            }
-        }
-        //buffer_pos += i;
-        //SDL_UnlockAudio();			
-        buffer_pos += LenReg;
-    }
-    else
-    {
-        DebugMessage(M64MSG_WARNING, "AiLenChanged(): Audio buffer overflow.");
-    }
-
-    EM_ASM_INT({
-
-			var primaryBuffer = $0|0;
-			var numSamples = $1|0;
-
-			//console.error('###############SOUND UPDATE ################', numSamples,' samples');
-			//var now = performance.now();
-			var now = Module.audio.context.currentTime;
-
-			if(!Module.audio.leftData)
-			{
-				Module.audio.leftData = [];
-			}
-			if(!Module.audio.rightData)
-			{
-				Module.audio.rightData = [];
-			}
-
-			// check for buffer overruns (if we've accumulated more than 1 second of audio data)
-			if(Module.audio.leftData.length > Module.audio.SAMPLE_RATE * 1.5)
-			{
-				Module.audio.leftData = [];
-				Module.audio.rightData = [];
-				Module.audio.soundStopTime = now;
-			}
-
-			// convert samples from interleaved shorts to two non-interleaved floats
-			for(var i = 0; i < numSamples; i++)
-			{
-				//var sample = getValue(primaryBuffer + (i*2), 'i16');
-				var address =  primaryBuffer + i * 2;
-				//var sample = getValue(address, 'i16');
-				var sample = getValue(address, 'i16')/32768.0;
-				if(i%2)
-				{
-					Module.audio.leftData.push(sample);
-				}else{
-					Module.audio.rightData.push(sample);
+						if(i%2) {
+								soundDataLeft[n] = sample;
+						} else {
+								soundDataRight[n] = sample;
+								n++;
+						}
 				}
-			}
-
-			//Module.audio.lastSamplSubmit = now;
-			var delta = now - Module.audio.lastSamplSubmit;
-			//console.error('added ',numSamples,' samples at audio time: ',  Module.audio.context.currentTime ,' with sample rate: ',Module.audio.SAMPLE_RATE,' dt: ',delta,' expect more audio within: ',numSamples/ Module.audio.SAMPLE_RATE);
-			Module.audio.lastSamplSubmit = now;
-
-	    //Schedule a new sound buffer to play if the current buffer end time is due to expire.
-	    //var simulatedHWClock = now;///1000.0;
-
-	    //if(soundStopTime < context.currentTime + LOOKAHEAD) {
-	    //if(Module.audio.soundStopTime < now + Module.audio.LOOKAHEAD && Module.audio.leftData && Module.audio.leftData.length) {
-	    if(Module.audio.leftData && Module.audio.leftData.length) {
-	      //console.error('adding buffer at time: ' +  Module.audio.context.currentTime.toString() + ' Sound due to stop at: ' + soundStopTime.toString());
-	      var buffer = Module.audio.context.createBuffer(2, Module.audio.leftData.length, Module.audio.SAMPLE_RATE);
-	      soundDataLeft = buffer.getChannelData(0);
-				soundDataRight = buffer.getChannelData(1);
-				var numOfSamplesSubmitted = soundDataLeft.length;
-	      for (var i = 0; i < soundDataLeft.length; i++) {
-	        //soundData[i] = Math.sin(2*Math.PI*i*440/Module.audio.SAMPLE_RATE);
-					soundDataLeft[i] = Module.audio.leftData.shift();
-					soundDataRight[i] = Module.audio.rightData.shift();
-	      }
-
-	      bufferSource = Module.audio.context.createBufferSource();
-	      bufferSource.buffer = buffer;
-	      bufferSource.connect(Module.audio.context.destination);
 
 				if(Module.audio.soundStopTime < now)
 				{
 					Module.audio.soundStopTime = now + Module.audio.LOOKAHEAD;
 				}
-
+				
+				var bufferSource = Module.audio.context.createBufferSource();
+	      bufferSource.buffer = newBuffer;
+	      bufferSource.connect(Module.audio.context.destination);
+				
 	      bufferSource.start(Module.audio.soundStopTime);
-	      Module.audio.soundStopTime = Module.audio.soundStopTime + buffer.duration;
+	      Module.audio.soundStopTime = Module.audio.soundStopTime + newBuffer.duration;
 
-	      //console.error('Setting new stop sound time at context time ' + context.currentTime.toString() + ' to: ' + soundStopTime);
-
-	    }
 		}
-		,primaryBuffer
-		,LenReg/2);
+		,p
+		,LenReg);
 
-
-    /* Now we need to handle synchronization, by inserting time delay to keep the emulator running at the correct speed */
-    /* Start by calculating the current Primary buffer fullness in terms of output samples */
-    CurrLevel = (unsigned int) (((long long) (buffer_pos/N64_SAMPLE_BYTES) * OutputFreq * 100) / (GameFreq * speed_factor));
-    /* Next, extrapolate to the buffer level at the expected time of the next audio callback, assuming that the
-       buffer is filled at the same rate as the output frequency */
-    
-		//CurrTime = SDL_GetTicks();
-		CurrTime = EM_ASM_INT_V({return performance.now();});
-    
-		ExpectedTime = last_callback_ticks + ((1000 * SecondaryBufferSize) / OutputFreq);
-    ExpectedLevel = CurrLevel;
-    if (CurrTime < ExpectedTime)
-		{
-        ExpectedLevel += (ExpectedTime - CurrTime) * OutputFreq / 1000;
-		}
-
-#if _DEBUG
-    /* If the expected value of the Primary Buffer Fullness at the time of the next audio callback is more than 10
-       milliseconds ahead of our target buffer fullness level, then insert a delay now */
-    DebugMessage(M64MSG_VERBOSE, "%03i New audio bytes: %i  Time to next callback: %i  Current/Expected buffer level: %i/%i",
-                 CurrTime % 1000, LenReg, (int) (ExpectedTime - CurrTime), CurrLevel, ExpectedLevel);
-#endif
-
-    if (ExpectedLevel >= PrimaryBufferTarget + OutputFreq / 100)
-    {
-        unsigned int WaitTime = (ExpectedLevel - PrimaryBufferTarget) * 1000 / OutputFreq;
-
-#if _DEBUG
-        DebugMessage(M64MSG_VERBOSE, "    AiLenChanged(): Waiting %ims", WaitTime);
-#endif
-
-        if (l_PausedForSync)
-				{
-          //SDL_PauseAudio(0);
-				}
-        l_PausedForSync = 0;
-        //SDL_Delay(WaitTime);
-    }
-    /* Or if the expected level of the primary buffer is less than the secondary buffer size
-       (ie, predicting an underflow), then pause the audio to let the emulator catch up to speed */
-    else if (ExpectedLevel < SecondaryBufferSize)
-    {
-        DebugMessage(M64MSG_VERBOSE, "    AiLenChanged(): Possible underflow at next audio callback; pausing playback");
-        if (!l_PausedForSync)
-				{
-          //SDL_PauseAudio(0);
-				}
-        l_PausedForSync = 1;
-    }
-    /* otherwise the predicted buffer level is within our tolerance, so everything is okay */
-    else
-    {
-        if (l_PausedForSync)
-				{
-          //SDL_PauseAudio(0);
-				}
-        l_PausedForSync = 0;
-    }
 }
 
 EXPORT int CALL InitiateAudio( AUDIO_INFO Audio_Info )
