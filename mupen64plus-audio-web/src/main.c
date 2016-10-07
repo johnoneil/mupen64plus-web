@@ -412,6 +412,8 @@ EXPORT void CALL AiDacrateChanged( int SystemType )
 {
     int f = GameFreq;
 
+		//fprintf(stderr, "AiDacrateChanged %d\n", SystemType);
+
     if (!l_PluginInit)
         return;
 
@@ -445,9 +447,18 @@ EXPORT void CALL AiLenChanged( void )
     LenReg = *AudioInfo.AI_LEN_REG;
     p = AudioInfo.RDRAM + (*AudioInfo.AI_DRAM_ADDR_REG & 0xFFFFFF);
 
+		//Mario reports 44100Hz and sounds good with freq of 33600
+		// Evangaleon reports 22050Hz. and sounds 2x too fast at freq of 33600
+
 		// We have a buffer pointer and number of samples
 		// Just pass them to webaudio.
 		EM_ASM_INT({
+
+
+				// runtime mario reports sample_rate =  33600 and it sounds good
+
+				//console.log("audio sample rate used: ", Module.audio.SAMPLE_RATE);
+
 
 				var pBuffer = $0|0;
 				var bufferSize = $1|0;
@@ -771,6 +782,10 @@ static void InitializeAudio(int freq)
     //     // DebugMessage(M64MSG_WARNING, "Secondary buffer: %i output samples.", SecondaryBufferSize);
     //     //InitializeSDL();
     // }
+		if(freq < 11025) OutputFreq = 11025;
+    else if(freq < 22050) OutputFreq = 22050;
+    else OutputFreq = 44100;
+
 
 		//JONEIL create a web audio context
 		EM_ASM_INT({
@@ -786,11 +801,11 @@ static void InitializeAudio(int freq)
 				console.error('Cant initialize our audio context as module defined...');
 				return;
 			}
-			if(Module.audio.context)
-			{
-				return;
-			}
-			Module.audio.context = new (window.AudioContext || window.webkitAudioContext)();
+			//if(Module.audio.context)
+			//{
+			//	return;
+			//}
+			Module.audio.context = Module.audio.context || new (window.AudioContext || window.webkitAudioContext)();
 			Module.audio.channels = 2;
 			//Module.audio.BUFFER_LENGTH_MS = 45;
 			Module.audio.BUFFER_LENGTH_MS = 100;
