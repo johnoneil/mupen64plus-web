@@ -451,6 +451,11 @@ EXPORT void CALL AiLenChanged( void )
 
 				var pBuffer = $0|0;
 				var bufferSize = $1|0;
+
+				if(!pBuffer || bufferSize < 1)
+				{
+						return 0;
+				}
 				
 				var now = Module.audio.context.currentTime;
 				var numSamples = bufferSize / 4; // 2 channels of 16bit sound, 4 bytes per sample.
@@ -461,22 +466,21 @@ EXPORT void CALL AiLenChanged( void )
 				soundDataRight = newBuffer.getChannelData(1);
 			
 				var n  = 0; // number of sample frames generated
-				for(var i=0; i < bufferSize/2; i++) {
+				for(var i=0; i < bufferSize/4; i++) {
 
-						var address = pBuffer + i * 2;
-						var sample = getValue(address, 'i16')/32768.0;
+						var leftAddress = pBuffer + i * 4;
+						var rightAddress = leftAddress + 2;
+						var leftsample = getValue(leftAddress, 'i16')/32768.0;
+						var rightsample = getValue(rightAddress, 'i16')/32768.0;
 
-						if(i%2) {
-								soundDataLeft[n] = sample;
-						} else {
-								soundDataRight[n] = sample;
-								n++;
-						}
+						soundDataLeft[n] = leftsample;
+						soundDataRight[n] = rightsample;
+						n++;
 				}
 
 				if(Module.audio.soundStopTime < now)
 				{
-					Module.audio.soundStopTime = now + Module.audio.LOOKAHEAD;
+					Module.audio.soundStopTime = now + 0.2; // 200 millisecond lookahead
 				}
 				
 				var bufferSource = Module.audio.context.createBufferSource();
@@ -486,6 +490,7 @@ EXPORT void CALL AiLenChanged( void )
 	      bufferSource.start(Module.audio.soundStopTime);
 	      Module.audio.soundStopTime = Module.audio.soundStopTime + newBuffer.duration;
 
+				return n;
 		}
 		,p
 		,LenReg);
