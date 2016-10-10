@@ -123,8 +123,11 @@ ifdef glide
 		CFG_DIR := $(GLIDE_CFG_DIR)
 endif
 
+NATIVE_ARGS ?=
+
 run-native: $(NATIVE_DEPS)
 	./$(NATIVE_EXE) $(INPUT_ROM) \
+			$(NATIVE_ARGS) \
 			--corelib $(NATIVE_BIN)/libmupen64plus.so.2 \
 			--configdir $(CFG_DIR) \
 			--datadir $(CFG_DIR) \
