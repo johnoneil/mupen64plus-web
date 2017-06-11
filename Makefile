@@ -164,10 +164,10 @@ rebuild: clean all
 $(NATIVE_BIN):
 	mkdir $(NATIVE_BIN)
 
-$(NATIVE_EXE): $(NATIVE_BIN) mupen64plus-ui-console/projects/unix/mupen64plus 
+$(NATIVE_EXE): $(NATIVE_BIN) mupen64plus-ui-console/projects/unix/mupen64plus
 	cp mupen64plus-ui-console/projects/unix/mupen64plus $@
 
-mupen64plus-ui-console/projects/unix/mupen64plus: 
+mupen64plus-ui-console/projects/unix/mupen64plus:
 	cd mupen64plus-ui-console/projects/unix && $(MAKE) all
 
 $(NATIVE_BIN)/libmupen64plus.so.2: $(NATIVE_BIN) $(CORE_DIR)/libmupen64plus.so.2.0.0
@@ -293,7 +293,7 @@ $(BIN_DIR)/data/InputAutoCfg.ini: $(CFG_DIR)/InputAutoCfg.ini
 	mkdir -p $(@D)
 	cp $< $@
 
-$(BIN_DIR)/data/Glide64mk2.ini: $(GLIDE_CFG_DIR)/Glide64mk2.ini	
+$(BIN_DIR)/data/Glide64mk2.ini: $(GLIDE_CFG_DIR)/Glide64mk2.ini
 	mkdir -p $(@D)
 	cp $< $@
 
@@ -313,7 +313,7 @@ $(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg
 
 $(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini
 	cp $< $@
-	
+
 $(BIN_DIR)/data/mupencheat.txt: $(CFG_DIR)/mupencheat.txt
 	cp $< $@
 
@@ -454,17 +454,15 @@ $(RSP_DIR)/$(RSP_LIB) :
 
 clean-web:
 	rm -fr $(BIN_DIR)
-	rm $(CORE_DIR)/$(CORE_LIB)
+	rm -f $(CORE_DIR)/$(CORE_LIB)
 	rm -fr $(CORE_DIR)/_obj$(POSTFIX)
-	rm $(AUDIO_DIR)/$(AUDIO_LIB)
+	rm -f $(AUDIO_DIR)/$(AUDIO_LIB)
 	rm -fr $(AUDIO_DIR)/_obj$(POSTFIX)
-	rm $(VIDEO_DIR)/$(VIDEO_LIB)
+	rm -f $(VIDEO_DIR)/$(VIDEO_LIB)
 	rm -fr $(VIDEO_DIR)/_obj$(POSTFIX)
-	rm $(INPUT_DIR)/$(INPUT_LIB)
+	rm -f $(INPUT_DIR)/$(INPUT_LIB)
 	rm -fr $(INPUT_DIR)/_obj$(POSTFIX)
-	rm $(RSP_DIR)/$(RSP_LIB)
+	rm -f $(RSP_DIR)/$(RSP_LIB)
 	rm -fr $(RSP_DIR)/_obj$(POSTFIX)
-	rm $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
+	rm -f $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
 	rm -fr $(RICE_VIDEO_DIR)/_obj$(POSTFIX)
-
-
