@@ -121,7 +121,7 @@ GLIDE_CFG_DIR := cfg/glide
 DATA_DIR := mupen64plus-core/data
 
 CFG_DIR := $(GLIDE_CFG_DIR)
-ifndef glide
+ifdef rice
 		CFG_DIR := $(RICE_CFG_DIR)
 endif
 
@@ -305,10 +305,10 @@ $(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS)
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg
+$(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg .FORCE
 	cp $< $@
 
-$(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini
+$(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini .FORCE
 	cp $< $@
 
 $(BIN_DIR)/data/mupencheat.txt: $(CFG_DIR)/mupencheat.txt
