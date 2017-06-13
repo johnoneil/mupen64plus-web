@@ -7,6 +7,7 @@ GAMES_DIR ?= ./games
 ROM_DIR_NAME ?= roms
 ROMS_DIR ?= $(abspath $(ROM_DIR_NAME))
 INPUT_ROM ?= m64p_test_rom.v64
+PLATFORM ?= web
 BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
 SCRIPTS_DIR := ./scripts
 
@@ -105,24 +106,28 @@ ifeq ($(PLATFORM), native)
 		ALL_DEPS := $(NATIVE_DEPS)
 endif
 
-all: native web
+all: $(ALL_DEPS)
 
-native: $(NATIVE_DEPS)
+.FORCE:
 
-web: $(WEB_DEPS)
+native: .FORCE
+	$(MAKE) PLATFORM=native
+
+web: .FORCE
+	$(MAKE) PLATFORM=web
 
 RICE_CFG_DIR := cfg/rice
 GLIDE_CFG_DIR := cfg/glide
 DATA_DIR := mupen64plus-core/data
 
-CFG_DIR := $(RICE_CFG_DIR)
-ifdef glide
-		CFG_DIR := $(GLIDE_CFG_DIR)
+CFG_DIR := $(GLIDE_CFG_DIR)
+ifndef glide
+		CFG_DIR := $(RICE_CFG_DIR)
 endif
 
 NATIVE_ARGS ?=
 
-run-native: $(NATIVE_DEPS)
+run-native: native
 	./$(NATIVE_EXE) $(INPUT_ROM) \
 			$(NATIVE_ARGS) \
 			--corelib $(NATIVE_BIN)/libmupen64plus.so.2 \
@@ -140,10 +145,10 @@ endif
 EMRUN ?= --emrun
 
 FORWARDSLASH ?= %2F
-run-web: $(WEB_DEPS)
+run-web: web
 	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html --nospeedlimit  $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(INPUT_ROM)
 
-run: run-$(PLATFORM)
+run: run-web
 
 clean-native:
 	cd mupen64plus-ui-console/projects/unix && $(MAKE) clean
@@ -154,7 +159,7 @@ clean-native:
 	cd $(RICE_VIDEO_DIR) && $(MAKE) clean
 	cd $(AUDIO_DIR) && $(MAKE) clean
 
-clean: clean-$(PLATFORM)
+clean: clean-web clean-native
 
 rebuild: clean all
 
@@ -279,8 +284,6 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 			LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
 			OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
 			all
-
-.FORCE:
 
 # input files helpers
 $(BIN_DIR)/data/InputAutoCfg.ini: $(CFG_DIR)/InputAutoCfg.ini
