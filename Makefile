@@ -1,15 +1,8 @@
 # build native or web version of mupen64-plus
-# build with 'make platform=native' for web build
-# or do 'make native' for native or 'make web' for web
-# To run the same switches apply:
-# 'make run-web' or 'make run platform=web'
-# or
-# 'make run-platform' or 'make run platform=web'
-PLATFORM ?= web
-ifeq ($(platform), native)
-		PLATFORM := native
-endif
-
+# to build web version: 'make web'
+# to build native version: 'make native'
+# to run web version: 'make run-web'
+# to run native version: 'make run-native'
 GAMES_DIR ?= ./games
 ROM_DIR_NAME ?= roms
 ROMS_DIR ?= $(abspath $(ROM_DIR_NAME))
@@ -32,7 +25,11 @@ CORE_LIB = $(CORE)$(POSTFIX)$(SO_EXTENSION)
 
 AUDIO ?= mupen64plus-audio-web
 AUDIO_DIR = $(AUDIO)/projects/unix/
-AUDIO_LIB = $(AUDIO)$(SO_EXTENSION)
+AUDIO_LIB = $(AUDIO).js
+
+NATIVE_AUDIO := mupen64plus-audio-sdl
+NATIVE_AUDIO_DIR = $(NATIVE_AUDIO)/projects/unix
+NATIVE_AUDIO_LIB = $(NATIVE_AUDIO).so
 
 VIDEO ?= mupen64plus-video-glide64mk2
 VIDEO_DIR = $(VIDEO)/projects/unix
@@ -108,7 +105,7 @@ ifeq ($(PLATFORM), native)
 		ALL_DEPS := $(NATIVE_DEPS)
 endif
 
-all: $(ALL_DEPS)
+all: native web
 
 native: $(NATIVE_DEPS)
 
@@ -197,17 +194,14 @@ $(NATIVE_BIN)/mupen64plus-video-glide64mk2.so: $(NATIVE_BIN) $(VIDEO_DIR)/mupen6
 $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so:
 	cd $(RICE_VIDEO_DIR) && $(MAKE) all
 
-$(RICE_VIDEO_DIR)/mupen64plus-audio-sdl:
-	cd $(AUDIO_DIR) && $(MAKE) all
-
 $(NATIVE_BIN)/mupen64plus-video-rice.so: $(NATIVE_BIN) $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so
 	cp $(RICE_VIDEO_DIR)/mupen64plus-video-rice.so $@
 
-$(AUDIO_DIR)/mupen64plus-audio-sdl.so:
-	cd $(AUDIO_DIR) && $(MAKE) all
+$(NATIVE_AUDIO_DIR)/mupen64plus-audio-sdl.so:
+	cd $(NATIVE_AUDIO_DIR) && $(MAKE) all
 
-$(NATIVE_BIN)/mupen64plus-audio-sdl.so: $(NATIVE_BIN) $(AUDIO_DIR)/mupen64plus-audio-sdl.so
-	cp $(AUDIO_DIR)/mupen64plus-audio-sdl.so $@
+$(NATIVE_BIN)/mupen64plus-audio-sdl.so: $(NATIVE_BIN) $(NATIVE_AUDIO_DIR)/mupen64plus-audio-sdl.so
+	cp $(NATIVE_AUDIO_DIR)/mupen64plus-audio-sdl.so $@
 
 
 ifeq ($(config), debug)
