@@ -216,9 +216,6 @@ DEBUG_LEVEL = -g2 -s ASSERTIONS=1
 
 else
 
-#OPT_LEVEL = -Oz
-#OPT_LEVEL = -Oz -s OUTLINING_LIMIT=10000
-#DEBUG_LEVEL = -g2
 OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
 endif
@@ -282,7 +279,7 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 			GLU_CFLAGS="" \
 			V=1 \
 			LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-			OPTFLAGS="-O0 -g2 -s FULL_ES2=1 -s SIDE_MODULE=1 -s ASSERTIONS=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
+			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s FULL_ES2=1 -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
 			all
 
 # input files helpers
