@@ -14,11 +14,18 @@ if ! gcc in [ feature.values <toolset> ]
 
 project : default-build <toolset>gcc ;
 
+# Python configuration
+import python ;
+if ! [ python.configured ]
+{
+    using python : 2.7 : /usr ;
+}
+
 # List of --with-<library> and --without-<library>
 # options. If left empty, all libraries will be built.
 # Options specified on the command line completely
 # override this variable.
-libraries =  --with-filesystem --with-system ;
+libraries =  ;
 
 # These settings are equivivalent to corresponding command-line
 # options.

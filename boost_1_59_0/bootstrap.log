@@ -4,6 +4,22 @@
 rm -rf bootstrap
 mkdir bootstrap
 gcc -o bootstrap/jam0 command.c compile.c constants.c debug.c execcmd.c frames.c function.c glob.c hash.c hdrmacro.c headers.c jam.c jambase.c jamgram.c lists.c make.c make1.c object.c option.c output.c parse.c pathsys.c regexp.c rules.c scan.c search.c subst.c timestamp.c variable.c modules.c strings.c filesys.c builtins.c class.c cwd.c native.c md5.c w32_getreg.c modules/set.c modules/path.c modules/regex.c modules/property-set.c modules/sequence.c modules/order.c execunix.c fileunix.c pathunix.c
+execcmd.c: In function ‘onintr’:
+execcmd.c:120:5: warning: implicit declaration of function ‘out_printf’ [-Wimplicit-function-declaration]
+     out_printf( "...interrupted\n" );
+     ^
+make.c: In function ‘make’:
+make.c:132:13: warning: implicit declaration of function ‘out_printf’ [-Wimplicit-function-declaration]
+             out_printf( "...found %d target%s...\n", counts->targets,
+             ^
+make.c: In function ‘make0’:
+make.c:735:13: warning: implicit declaration of function ‘out_flush’ [-Wimplicit-function-declaration]
+             out_flush();
+             ^
+modules/path.c: In function ‘path_exists’:
+modules/path.c:16:12: warning: implicit declaration of function ‘file_query’ [-Wimplicit-function-declaration]
+     return file_query( list_front( lol_get( frame->args, 0 ) ) ) ?
+            ^
 ./bootstrap/jam0 -f build.jam --toolset=gcc --toolset-root= clean
 ...found 1 target...
 ...updating 1 target...
@@ -13,5 +29,17 @@ gcc -o bootstrap/jam0 command.c compile.c constants.c debug.c execcmd.c frames.c
 ...found 158 targets...
 ...updating 2 targets...
 [COMPILE] bin.linuxx86_64/b2
+execcmd.c: In function ‘onintr’:
+execcmd.c:120:5: warning: implicit declaration of function ‘out_printf’ [-Wimplicit-function-declaration]
+     out_printf( "...interrupted\n" );
+     ^
+make.c: In function ‘make’:
+make.c:132:13: warning: implicit declaration of function ‘out_printf’ [-Wimplicit-function-declaration]
+             out_printf( "...found %d target%s...\n", counts->targets,
+             ^
+modules/path.c: In function ‘path_exists’:
+modules/path.c:16:12: warning: implicit declaration of function ‘file_query’ [-Wimplicit-function-declaration]
+     return file_query( list_front( lol_get( frame->args, 0 ) ) ) ?
+            ^
 [COPY] bin.linuxx86_64/bjam
 ...updated 2 targets...
