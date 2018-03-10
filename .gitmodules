@@ -18,4 +18,4 @@
 	url = git@github.com:johnoneil/mupen64plus-audio-sdl.git
 [submodule "mupen64plus-video-rice"]
 	path = mupen64plus-video-rice
-	url = johnoneil/mupen64plus-video-rice.git
+	url = git@github.com:johnoneil/mupen64plus-video-rice.git
