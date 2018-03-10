@@ -3,6 +3,9 @@
 # to build native version: 'make native'
 # to run web version: 'make run-web'
 # to run native version: 'make run-native'
+# to specify a rom to load, make sure it's in the ROMS_DIR and load as:
+# make INPUT_ROM="rom.name.n64"
+
 GAMES_DIR ?= ./games
 ROM_DIR_NAME ?= roms
 ROMS_DIR ?= $(abspath $(ROM_DIR_NAME))
@@ -79,8 +82,8 @@ INPUT_FILES = \
 	$(INDEX_TEMPLATE) \
 	$(BIN_DIR)/$(MODULE_JS) \
 
-OPT_LEVEL = -O0
-DEBUG_LEVEL = -g2
+OPT_LEVEL ?= -O3
+DEBUG_LEVEL ?=
 
 #MEMORY = 524288
 MEMORY = 402653184
