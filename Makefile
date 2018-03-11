@@ -4,18 +4,19 @@
 # to run web version: 'make run-web'
 # to run native version: 'make run-native'
 # to specify a rom to load, make sure it's in the ROMS_DIR and load as:
-# make INPUT_ROM="rom.name.n64"
+# make ROM="rom.name.n64" run-web
 
 GAMES_DIR ?= ./games
 ROM_DIR_NAME ?= roms
 ROMS_DIR ?= $(abspath $(ROM_DIR_NAME))
-INPUT_ROM ?= m64p_test_rom.v64
+ROM ?= m64p_test_rom.v64
+DEFAULT_ROM := m64p_test_rom.v64
 PLATFORM ?= web
 BIN_DIR ?= $(abspath ./bin/$(PLATFORM))
 SCRIPTS_DIR := ./scripts
 
-TARGET_ROM = $(BIN_DIR)/roms/$(INPUT_ROM)
-SOURCE_ROM = $(ROMS_DIR)/$(INPUT_ROM)
+TARGET_ROM = $(BIN_DIR)/roms/$(ROM)
+SOURCE_ROM = $(ROMS_DIR)/$(ROM)
 
 POSTFIX ?= -web
 SO_EXTENSION ?= .js
@@ -76,11 +77,11 @@ INPUT_FILES = \
 	$(BIN_DIR)/data/Glide64mk2.ini \
 	$(BIN_DIR)/data/RiceVideoLinux.ini \
 	$(BIN_DIR)/stats.min.js \
-	$(BIN_DIR)/data/mupen64plus.cfg \
-	$(BIN_DIR)/data/mupen64plus.ini \
 	$(BIN_DIR)/data/mupencheat.txt \
 	$(INDEX_TEMPLATE) \
 	$(BIN_DIR)/$(MODULE_JS) \
+	$(BIN_DIR)/data/mupen64plus.cfg \
+	$(BIN_DIR)/data/mupen64plus.ini \
 
 OPT_LEVEL ?= -O3
 DEBUG_LEVEL ?=
@@ -131,12 +132,12 @@ endif
 NATIVE_ARGS ?=
 
 run-native: native
-	./$(NATIVE_EXE) $(INPUT_ROM) \
+	./$(NATIVE_EXE) $(ROM) \
 			$(NATIVE_ARGS) \
 			--corelib $(NATIVE_BIN)/libmupen64plus.so.2 \
 			--configdir $(CFG_DIR) \
 			--datadir $(CFG_DIR) \
-			$(ROMS_DIR)/$(INPUT_ROM)
+			$(ROMS_DIR)/$(ROM)
 
 
 # use browser=chromium arg (or chrome etc) to test in broser
@@ -149,7 +150,7 @@ EMRUN ?= --emrun
 
 FORWARDSLASH ?= %2F
 run-web: web
-	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html --nospeedlimit  $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(INPUT_ROM)
+	emrun $ --browser $(BROWSER) $(BIN_DIR)/index.html --nospeedlimit  $(FORWARDSLASH)$(ROM_DIR_NAME)$(FORWARDSLASH)$(ROM)
 
 run: run-web
 
@@ -314,16 +315,16 @@ $(BIN_DIR)/$(MODULE_JS): $(SCRIPTS_DIR)/$(MODULE_JS)
 $(BIN_DIR)/stats.min.js: $(SCRIPTS_DIR)/stats.min.js
 	cp $< $@
 
-$(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg .FORCE
+$(BIN_DIR)/data/mupen64plus.cfg: $(CFG_DIR)/mupen64plus-web.cfg
 	cp $< $@
 
-$(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini .FORCE
+$(BIN_DIR)/data/mupen64plus.ini: $(CFG_DIR)/mupen64plus.ini
 	cp $< $@
 
 $(BIN_DIR)/data/mupencheat.txt: $(CFG_DIR)/mupencheat.txt
 	cp $< $@
 
-$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
+$(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES)
 	@mkdir -p $(BIN_DIR)
 	rm -f $@
 	# building UI (program entry point)
@@ -352,7 +353,7 @@ $(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
 			-s USE_SDL=2 \
 			-s USE_LIBPNG=1 \
 			-s FULL_ES2=1 \
-			-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
+			-DEMSCRIPTEN=1 -DINPUT_ROM=$(DEFAULT_ROM) $(EMRUN)" \
 			all
 
 core: $(CORE_DIR)/$(CORE_LIB)
