@@ -223,6 +223,13 @@ OPT_LEVEL = -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
 endif
 
+
+OPT_FLAGS := $(OPT_LEVEL) \
+			$(DEBUG_LEVEL) \
+			-s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' \
+			-DEMSCRIPTEN=1 \
+			-DUSE_FRAMESKIPPER=1
+
 #$(PLUGINS_DIR)/%.js : %/projects/unix/%.js
 #	cp "$<" "$@"
 
@@ -263,6 +270,8 @@ $(BIN_DIR) :
 $(BOOST_FILESYSTEM_LIB):
 	cd $(BOOST_DIR) && ./bootstrap.sh && ./b2 --test-config=user-config.jam toolset=emscripten link=static
 
+rice: $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
+
 $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 	cd $(RICE_VIDEO_DIR) && \
 			emmake $(MAKE) \
@@ -282,7 +291,7 @@ $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB):
 			GLU_CFLAGS="" \
 			V=1 \
 			LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s FULL_ES2=1 -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -s SIDE_MODULE=1 -I../../../boost_1_59_0 -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1 -DUSE_FRAMESKIPPER=1" \
+			OPTFLAGS="$(OPT_FLAGS) -s FULL_ES2=1 -DNO_FILTER_THREAD=1 -s SIDE_MODULE=1 -I../../../boost_1_59_0" \
 			all
 
 # input files helpers
@@ -334,18 +343,19 @@ $(BIN_DIR)/$(TARGET_HTML): $(INDEX_TEMPLATE) $(PLUGINS) $(INPUT_FILES) Makefile
 			GL_CFLAGS="" \
 			GLU_CFLAGS="" \
 			V=1 \
-			OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s MAIN_MODULE=1 \
+			OPTFLAGS="$(OPT_FLAGS) -s MAIN_MODULE=1 \
 			--preload-file $(BIN_DIR)/plugins@plugins \
 			--preload-file $(BIN_DIR)/data@data  \
 			--shell-file $(INDEX_TEMPLATE) \
 			-s TOTAL_MEMORY=$(MEMORY) \
 			-s USE_ZLIB=1 \
 			-s USE_SDL=2 \
-			-s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' \
 			-s USE_LIBPNG=1 \
 			-s FULL_ES2=1 \
 			-DEMSCRIPTEN=1 -DINPUT_ROM=$(INPUT_ROM) $(EMRUN)" \
 			all
+
+core: $(CORE_DIR)/$(CORE_LIB)
 
 $(CORE_DIR)/$(CORE_LIB) :
 	cd $(CORE_DIR) && \
@@ -364,8 +374,11 @@ $(CORE_DIR)/$(CORE_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -DEMSCRIPTEN=1 -DONSCREEN_FPS=1" \
+		OPTFLAGS="$(OPT_FLAGS) -s SIDE_MODULE=1 -DONSCREEN_FPS=1" \
 		all
+
+
+audio: $(AUDIO_DIR)/$(AUDIO_LIB)
 
 $(AUDIO_DIR)/$(AUDIO_LIB) :
 	cd $(AUDIO_DIR) && \
@@ -386,8 +399,10 @@ $(AUDIO_DIR)/$(AUDIO_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_FLAGS) -s SIDE_MODULE=1 -DNO_FILTER_THREAD=1"\
 		all
+
+glide: $(VIDEO_DIR)/$(VIDEO_LIB)
 
 $(VIDEO_DIR)/$(VIDEO_LIB) : $(BOOST_FILESYSTEM_LIB)
 	cd $(VIDEO_DIR) && \
@@ -406,10 +421,10 @@ $(VIDEO_DIR)/$(VIDEO_LIB) : $(BOOST_FILESYSTEM_LIB)
 		GLU_CFLAGS="" \
 		V=1 \
 		LOADLIBES="../../../boost_1_59_0/stage/lib/libboost_filesystem.a ../../../boost_1_59_0/stage/lib/libboost_system.a" \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -DUSE_FRAMESKIPPER=1\
-		-I../../../boost_1_59_0 \
-		-DEMSCRIPTEN=1 -s FULL_ES2=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_FLAGS) -s SIDE_MODULE=1 -I../../../boost_1_59_0 \ -s FULL_ES2=1 -DNO_FILTER_THREAD=1" \
 		all
+
+input: $(INPUT_DIR)/$(INPUT_LIB)
 
 $(INPUT_DIR)/$(INPUT_LIB) : $(BOOST_FILESYSTEM_LIB)
 	cd $(INPUT_DIR) && \
@@ -427,8 +442,10 @@ $(INPUT_DIR)/$(INPUT_LIB) : $(BOOST_FILESYSTEM_LIB)
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1 -I../../../boost_1_59_0 -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -DEMSCRIPTEN=1 -DNO_FILTER_THREAD=1" \
+		OPTFLAGS="$(OPT_FLAGS) -s SIDE_MODULE=1 -I../../../boost_1_59_0 "\
 		all
+
+rsp: $(RSP_DIR)/$(RSP_LIB)
 
 $(RSP_DIR)/$(RSP_LIB) :
 	cd $(RSP_DIR)&& \
@@ -446,7 +463,7 @@ $(RSP_DIR)/$(RSP_LIB) :
 		GL_CFLAGS="" \
 		GLU_CFLAGS="" \
 		V=1 \
-		OPTFLAGS="$(OPT_LEVEL) $(DEBUG_LEVEL) -s SIDE_MODULE=1  -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\", \"getValue\"]' -DEMSCRIPTEN=1 -DVIDEO_HLE_ALLOWED=1" \
+		OPTFLAGS="$(OPT_FLAGS) -s SIDE_MODULE=1 -DVIDEO_HLE_ALLOWED=1" \
 		all
 
 
