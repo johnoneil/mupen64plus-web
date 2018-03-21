@@ -269,7 +269,7 @@ $(BIN_DIR) :
 	mkdir -p $(BIN_DIR)
 
 $(BOOST_FILESYSTEM_LIB):
-	cd $(BOOST_DIR) && ./bootstrap.sh && ./b2 --test-config=user-config.jam toolset=emscripten link=static
+	cd $(BOOST_DIR) && ./bootstrap.sh && ./b2 --test-config=user-config.jam toolset=emscripten link=static --with-filesystem
 
 rice: $(RICE_VIDEO_DIR)/$(RICE_VIDEO_LIB)
 
